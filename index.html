@@ -6,9 +6,35 @@
   <meta name="description" content="Academic homepage of Yibin Shen, USTC. Interests: analysis, partial differential equations, fluid dynamics, and Navier–Stokes equations.">
   <meta name="color-scheme" content="light dark">
   <title>Yibin Shen | Mathematics</title>
+  <link rel="preconnect" href="https://images.steamusercontent.com">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <section class="wallpaper-cover" id="top" aria-label="Homepage cover">
+    <div class="wallpaper-fallback" aria-hidden="true">
+      <div class="wallpaper-layer base-layer"></div>
+      <div class="wallpaper-layer motion-hair"></div>
+      <div class="wallpaper-layer motion-ribbon"></div>
+      <div class="wallpaper-layer motion-water"></div>
+      <div class="moon-glow"></div>
+    </div>
+    <canvas id="wallpaper-canvas" aria-hidden="true"></canvas>
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+    <div class="cover-copy">
+      <div class="cover-kicker">Mathematics · USTC</div>
+      <h1>Yibin Shen</h1>
+      <p>Analysis · Partial Differential Equations · Fluid Dynamics</p>
+    </div>
+
+    <a class="scroll-cue" href="#about" aria-label="Scroll to About">
+      <span>Scroll to enter</span>
+      <span class="scroll-arrow" aria-hidden="true">↓</span>
+    </a>
+
+    <a class="wallpaper-credit" href="https://steamcommunity.com/sharedfiles/filedetails/?id=3571476687" target="_blank" rel="noopener noreferrer">Wallpaper source ↗</a>
+  </section>
+
   <header class="site-header">
     <div class="container nav-wrap">
       <a class="brand" href="#top" aria-label="Yibin Shen home">YS</a>
@@ -23,19 +49,8 @@
     </div>
   </header>
 
-  <main id="top">
-    <section class="hero container">
-      <div class="eyebrow">Mathematics · USTC</div>
-      <h1>Yibin Shen</h1>
-      <p class="lead">Undergraduate student interested in analysis, partial differential equations, and mathematical fluid dynamics.</p>
-      <div class="hero-links" aria-label="Primary links">
-        <a class="button primary" href="#research">Research interests</a>
-        <a class="button" href="https://github.com/weakly-sane/math-notes">Mathematical notes ↗</a>
-        <a class="text-link" href="https://github.com/weakly-sane">GitHub ↗</a>
-      </div>
-    </section>
-
-    <section id="about" class="section container">
+  <main>
+    <section id="about" class="section container first-section">
       <div class="section-label">01 / About</div>
       <div class="split">
         <h2>Mathematics with a focus on rigorous PDE analysis.</h2>
@@ -85,6 +100,7 @@
         <p>Research on Liouville-type questions for the three-dimensional stationary Navier–Stokes equations.</p>
         <p class="project-advisor">Advisor: Prof. Jincheng Yang, Johns Hopkins University</p>
       </div>
+
       <div class="research-project">
         <div class="project-meta">
           <span>Sep. — Dec. 2026</span>
@@ -94,7 +110,6 @@
         <p>Specialized seminar on mathematical fluid dynamics, with presentations and discussions of foundational and recent papers.</p>
         <p class="project-advisor">Advisor: Prof. Junyan Zhang, USTC</p>
       </div>
-
     </section>
 
     <section id="teaching" class="section container">
