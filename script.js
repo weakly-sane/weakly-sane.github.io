@@ -226,16 +226,10 @@ if (year) year.textContent = new Date().getFullYear();
       disp.x += ribbons * sin(u_time * 3.7 + uv.x * 24.0 + uv.y * 19.0) * .00185;
       disp.y += ribbons * cos(u_time * 3.1 + uv.x * 22.0) * .00078;
 
-      float broadWave = sin(uv.x * 112.0 + u_time * 1.65) + sin(uv.y * 84.0 - u_time * 1.35);
-      disp += vec2(broadWave, -broadWave * .38) * water * .00028;
-
-      vec2 ripplePoint = (uv - vec2(.445, .825)) * vec2(IMAGE_ASPECT, 1.0);
-      float rd = length(ripplePoint);
-      float ring = sin(rd * 165.0 - u_time * 3.6) * exp(-rd * 9.5);
-      vec2 radial = rd > .0001 ? normalize(ripplePoint) : vec2(0.0);
-      disp += vec2(radial.x / IMAGE_ASPECT, radial.y) * ring * water * .00105;
-
-      uv += disp;
+      // Water and ripple displacement disabled.
+      // Keep the image geometry stable; motion now comes from subtle
+      // non-water layers, lighting pulses and particles only.
+      uv += disp * 0.0;
       uv = clamp(uv, vec2(.001), vec2(.999));
       vec3 col = texture2D(u_image, uv).rgb;
 
