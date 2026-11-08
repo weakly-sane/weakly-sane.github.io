@@ -209,8 +209,15 @@ if (year) year.textContent = new Date().getFullYear();
         ellipseMask(uv, vec2(.72, .57), vec2(.25, .27)),
         ellipseMask(uv, vec2(.55, .48), vec2(.17, .20))
       );
-      float water = smoothstep(.54, .79, uv.y);
-      water *= 1.0 - .72 * ellipseMask(uv, vec2(.66, .62), vec2(.24, .27));
+      float water = smoothstep(.62, .82, uv.y);
+
+      // Keep all water displacement off the character.
+      // The exclusion uses two overlapping soft ellipses that cover the torso,
+      // skirt/legs and the lower-right foreground character silhouette.
+      float characterBody = ellipseMask(uv, vec2(.64, .53), vec2(.27, .39));
+      float characterLower = ellipseMask(uv, vec2(.61, .78), vec2(.24, .25));
+      float characterMask = max(characterBody, characterLower);
+      water *= 1.0 - smoothstep(.08, .48, characterMask);
 
       vec2 disp = vec2(0.0);
       disp.x += hair * sin(u_time * 2.15 + uv.y * 43.0) * .00145;
