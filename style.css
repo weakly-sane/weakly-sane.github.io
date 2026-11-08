@@ -67,9 +67,8 @@ a { color: inherit; }
   animation: ribbon-sway 4.3s ease-in-out infinite alternate;
 }
 .motion-water {
-  -webkit-mask-image: linear-gradient(to bottom, transparent 48%, rgba(0,0,0,.45) 58%, #000 72%);
-  mask-image: linear-gradient(to bottom, transparent 48%, rgba(0,0,0,.45) 58%, #000 72%);
-  animation: water-drift 6.4s ease-in-out infinite alternate;
+  /* Water motion is handled by WebGL, where the character can be excluded precisely. */
+  display: none;
 }
 .moon-glow {
   pointer-events: none;
