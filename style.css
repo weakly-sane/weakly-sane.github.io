@@ -968,7 +968,8 @@ footer {
     inset 0 1px 0 rgba(255, 255, 255, .05);
 }
 
-.friend-card-self {
+.friend-card-self,
+.friend-card-person {
   display: grid;
   grid-template-columns: 108px minmax(0, 1fr);
   gap: 26px;
@@ -1025,6 +1026,7 @@ footer {
 }
 
 .friend-card-self a,
+.friend-card-person .friend-cta,
 .friend-cta {
   color: #d8e8ff;
   font-size: 14px;
@@ -1037,6 +1039,7 @@ footer {
 }
 
 .friend-card-invite {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: 22px;
@@ -1079,7 +1082,8 @@ footer {
     padding: 22px;
   }
 
-  .friend-card-self {
+  .friend-card-self,
+  .friend-card-person {
     grid-template-columns: 76px minmax(0, 1fr);
     gap: 18px;
   }
