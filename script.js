@@ -203,3 +203,107 @@ if (year) year.textContent = new Date().getFullYear();
 
   requestAnimationFrame(frame);
 })();
+
+
+(() => {
+  const canvas = document.getElementById('content-particle-canvas');
+  const cover = document.querySelector('.wallpaper-cover');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  let width = 1;
+  let height = 1;
+  let dpr = 1;
+  let active = true;
+  let last = performance.now();
+
+  const fireflies = Array.from({ length: 22 }, (_, i) => ({
+    x: Math.random(),
+    y: Math.random(),
+    vx: (Math.random() - .5) * .012,
+    vy: -.004 - Math.random() * .010,
+    drift: .45 + Math.random() * 1.15,
+    phase: Math.random() * Math.PI * 2,
+    pulse: .45 + Math.random() * 1.1,
+    radius: .65 + Math.random() * 1.35,
+    warm: i % 5 !== 0
+  }));
+
+  function resize() {
+    width = Math.max(1, window.innerWidth);
+    height = Math.max(1, window.innerHeight);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  if (cover) {
+    new IntersectionObserver(entries => {
+      const ratio = entries[0]?.intersectionRatio ?? 0;
+      active = ratio < 0.55;
+    }, { threshold: [0, .25, .55, 1] }).observe(cover);
+  }
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, .05);
+    last = now;
+
+    ctx.clearRect(0, 0, width, height);
+
+    if (active && !document.hidden) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+
+      const t = now / 1000;
+
+      for (const p of fireflies) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+
+        if (p.x < -.04) p.x = 1.04;
+        if (p.x > 1.04) p.x = -.04;
+        if (p.y < -.06) {
+          p.y = 1.06;
+          p.x = Math.random();
+        }
+
+        const wobbleX = Math.sin(t * p.drift + p.phase) * 12;
+        const wobbleY = Math.cos(t * p.drift * .78 + p.phase) * 8;
+        const x = p.x * width + wobbleX;
+        const y = p.y * height + wobbleY;
+        const pulse = .28 + .72 * (.5 + .5 * Math.sin(t * p.pulse * 2 + p.phase));
+        const glow = p.radius * 7.5;
+
+        const g = ctx.createRadialGradient(x, y, 0, x, y, glow);
+        if (p.warm) {
+          g.addColorStop(0, 'rgba(255,244,174,' + (.72 * pulse) + ')');
+          g.addColorStop(.18, 'rgba(230,214,122,' + (.24 * pulse) + ')');
+          g.addColorStop(1, 'rgba(202,190,95,0)');
+        } else {
+          g.addColorStop(0, 'rgba(220,241,255,' + (.62 * pulse) + ')');
+          g.addColorStop(.18, 'rgba(133,193,255,' + (.20 * pulse) + ')');
+          g.addColorStop(1, 'rgba(91,158,230,0)');
+        }
+
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, glow, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
