@@ -186,93 +186,6 @@ a { color: inherit; }
 .scene-time-clock {
   font-variant-numeric: tabular-nums;
 }
-.audio-control {
-  position: absolute;
-  z-index: 4;
-  top: 18px;
-  right: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: rgba(255,255,255,.88);
-  opacity: .72;
-  transition: opacity .2s ease;
-  filter: drop-shadow(0 1px 5px rgba(0,0,0,.7));
-}
-.audio-control:hover,
-.audio-control:focus-within {
-  opacity: 1;
-}
-.audio-toggle {
-  width: 30px;
-  height: 30px;
-  padding: 4px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-}
-.audio-icon {
-  width: 19px;
-  height: 19px;
-  fill: currentColor;
-}
-.audio-icon path:not(:first-child) {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-}
-.audio-icon-off {
-  display: none;
-}
-.audio-toggle.is-muted .audio-icon-on {
-  display: none;
-}
-.audio-toggle.is-muted .audio-icon-off {
-  display: block;
-}
-.audio-volume {
-  width: 74px;
-  height: 18px;
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-.audio-volume::-webkit-slider-runnable-track {
-  height: 2px;
-  border-radius: 99px;
-  background: rgba(255,255,255,.55);
-}
-.audio-volume::-webkit-slider-thumb {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 9px;
-  height: 9px;
-  margin-top: -3.5px;
-  border: 0;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 5px rgba(0,0,0,.55);
-}
-.audio-volume::-moz-range-track {
-  height: 2px;
-  border: 0;
-  border-radius: 99px;
-  background: rgba(255,255,255,.55);
-}
-.audio-volume::-moz-range-thumb {
-  width: 9px;
-  height: 9px;
-  border: 0;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 5px rgba(0,0,0,.55);
-}
-
 .wallpaper-credit {
   position: absolute;
   z-index: 3;
@@ -549,8 +462,6 @@ footer { padding: 28px 0 36px; color: var(--muted); font-size: 12px; }
 }
 
 @media (max-width: 620px) {
-  .audio-control { top: 12px; right: 12px; }
-  .audio-volume { width: 58px; }
   nav a:nth-child(3), nav a:nth-child(4) { display: none; }
   .project-meta, .honor-item { grid-template-columns: 1fr; }
   .project-meta { display: block; }
