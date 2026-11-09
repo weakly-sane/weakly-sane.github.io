@@ -1,0 +1,31 @@
+name: Cache wallpaper asset
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/cache-wallpaper.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cache-wallpaper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download wallpaper
+        run: |
+          mkdir -p assets/wallpaper
+          curl -fL --retry 3 \
+            'https://images.steamusercontent.com/ugc/11997909639098621526/8DC7F56419FFAA39ADE80567B878B94A3C2D0E54/?ima=fit&imcolor=%23000000&imh=2160&impolicy=Letterbox&imw=3840&letterbox=true' \
+            -o assets/wallpaper/iuno.jpg
+      - name: Commit cached asset
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/wallpaper/iuno.jpg
+          git diff --cached --quiet && exit 0
+          git commit -m 'Cache wallpaper image'
+          git push
