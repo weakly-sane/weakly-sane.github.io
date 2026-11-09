@@ -100,26 +100,6 @@ if (year) year.textContent = new Date().getFullYear();
     warm: i % 7 === 0
   }));
 
-  const trail = [];
-
-  cover.addEventListener('pointermove', e => {
-    const r = cover.getBoundingClientRect();
-    const sx = particleCanvas.width / r.width;
-    const sy = particleCanvas.height / r.height;
-
-    for (let i = 0; i < 2; i++) {
-      trail.push({
-        x: (e.clientX - r.left) * sx + (Math.random() - .5) * 8,
-        y: (e.clientY - r.top) * sy + (Math.random() - .5) * 8,
-        vx: (Math.random() - .5) * .25,
-        vy: -.15 - Math.random() * .28,
-        life: 1,
-        size: 1 + Math.random() * 2
-      });
-    }
-
-    if (trail.length > 110) trail.splice(0, trail.length - 110);
-  }, { passive: true });
 
   function drawParticles(t) {
     if (!pctx) return;
@@ -165,27 +145,6 @@ if (year) year.textContent = new Date().getFullYear();
       pctx.fill();
     }
 
-    for (let i = trail.length - 1; i >= 0; i--) {
-      const p = trail[i];
-      p.x += p.vx * dpr;
-      p.y += p.vy * dpr;
-      p.life -= .024;
-
-      if (p.life <= 0) {
-        trail.splice(i, 1);
-        continue;
-      }
-
-      const g = pctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 5 * dpr);
-      g.addColorStop(0, 'rgba(225,248,255,' + (.68 * p.life) + ')');
-      g.addColorStop(.32, 'rgba(120,205,255,' + (.30 * p.life) + ')');
-      g.addColorStop(1, 'rgba(80,170,255,0)');
-
-      pctx.fillStyle = g;
-      pctx.beginPath();
-      pctx.arc(p.x, p.y, p.size * 5 * dpr, 0, Math.PI * 2);
-      pctx.fill();
-    }
 
     pctx.restore();
   }
@@ -310,6 +269,86 @@ if (year) year.textContent = new Date().getFullYear();
 
 
 (() => {
+  const canvas = document.getElementById('cursor-trail-canvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  let width = 1;
+  let height = 1;
+  let dpr = 1;
+  const trail = [];
+
+  function resize() {
+    width = Math.max(1, window.innerWidth);
+    height = Math.max(1, window.innerHeight);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  window.addEventListener('pointermove', e => {
+    for (let i = 0; i < 2; i++) {
+      trail.push({
+        x: e.clientX + (Math.random() - .5) * 7,
+        y: e.clientY + (Math.random() - .5) * 7,
+        vx: (Math.random() - .5) * .30,
+        vy: -.18 - Math.random() * .30,
+        life: 1,
+        size: .9 + Math.random() * 1.9
+      });
+    }
+
+    if (trail.length > 120) {
+      trail.splice(0, trail.length - 120);
+    }
+  }, { passive: true });
+
+  function frame() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const p = trail[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= .022;
+
+      if (p.life <= 0) {
+        trail.splice(i, 1);
+        continue;
+      }
+
+      const glow = p.size * 6.2;
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
+      g.addColorStop(0, 'rgba(232,249,255,' + (.74 * p.life) + ')');
+      g.addColorStop(.28, 'rgba(130,210,255,' + (.34 * p.life) + ')');
+      g.addColorStop(.62, 'rgba(92,172,255,' + (.12 * p.life) + ')');
+      g.addColorStop(1, 'rgba(70,150,255,0)');
+
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+
+
+(() => {
   const canvas = document.getElementById('content-water-canvas');
   const cover = document.querySelector('.wallpaper-cover');
   if (!canvas) return;
@@ -340,30 +379,31 @@ if (year) year.textContent = new Date().getFullYear();
     const float PI = 3.141592653589793;
 
     float waterHeight(vec2 p, float t) {
-      float h = 0.0;
+      // One clear disturbance source on the water surface.
+      // Perspective makes these circular world-space ripples appear elliptical on screen.
+      vec2 center = vec2(0.10, 3.10);
+      float r = length(p - center);
 
-      vec2 d1 = normalize(vec2(1.0, 0.22));
-      vec2 d2 = normalize(vec2(-0.42, 1.0));
-      vec2 d3 = normalize(vec2(0.72, 0.69));
-      vec2 d4 = normalize(vec2(-0.91, 0.28));
+      // Main outward-propagating ripple train.
+      float mainRipple =
+        sin(r * 10.8 - t * 2.55) *
+        exp(-r * 0.16) *
+        0.132;
 
-      h += sin(dot(p, d1) * 3.2 + t * 0.72) * 0.145;
-      h += sin(dot(p, d2) * 5.4 - t * 0.94 + 0.8) * 0.080;
-      h += sin(dot(p, d3) * 8.8 + t * 1.28 + 1.7) * 0.046;
-      h += sin(dot(p, d4) * 13.5 - t * 1.62 + 2.1) * 0.024;
+      // A finer harmonic gives each ring a thin luminous crest instead of a soft blob.
+      float fineRipple =
+        sin(r * 21.6 - t * 5.10 + 0.55) *
+        exp(-r * 0.22) *
+        0.026;
 
-      h += sin(p.x * 2.3 - p.y * 1.65 + t * 0.45 + sin(p.y * 0.9)) * 0.033;
-      h += sin(p.x * 18.0 + p.y * 8.0 - t * 2.0) * 0.010;
+      // Very gentle background water motion so the surface is alive between rings.
+      vec2 d1 = normalize(vec2(1.0, 0.18));
+      vec2 d2 = normalize(vec2(-0.36, 1.0));
+      float ambient =
+        sin(dot(p, d1) * 2.45 + t * 0.42) * 0.020 +
+        sin(dot(p, d2) * 4.10 - t * 0.55 + 1.2) * 0.012;
 
-      vec2 c1 = vec2(1.35, 3.45);
-      float r1 = length((p - c1) * vec2(1.0, 0.72));
-      h += sin(r1 * 10.5 - t * 1.62) * exp(-r1 * 0.38) * 0.020;
-
-      vec2 c2 = vec2(-1.9, 5.8);
-      float r2 = length((p - c2) * vec2(1.0, 0.78));
-      h += sin(r2 * 8.6 - t * 1.25 + 1.3) * exp(-r2 * 0.31) * 0.014;
-
-      return h;
+      return mainRipple + fineRipple + ambient;
     }
 
     void main() {
