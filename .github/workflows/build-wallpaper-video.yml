@@ -45,72 +45,115 @@ jobs:
           FPS = 24
           SECONDS = 8
           N = FPS * SECONDS
-
           src = cv2.resize(src, (W, H), interpolation=cv2.INTER_AREA)
+
+          # These polygons are simplified from the original Wallpaper Engine
+          # masks extracted from scene.pkg (coordinates at 1920x1080).
+          boat_poly = np.array([
+              [683,558],[758,668],[935,774],[838,907],[883,945],[936,929],
+              [1015,822],[1423,1079],[1919,1079],[1919,777],[1520,652],
+              [1550,623],[1530,520],[1348,511],[1322,461],[1367,433],
+              [1347,345],[1261,282],[1184,295],[1148,387],[1174,421],
+              [1076,404],[1001,507]
+          ], np.int32)
+
+          body_poly = np.array([
+              [1300,460],[1269,444],[1197,463],[1190,494],[1136,516],
+              [1124,591],[1133,618],[1060,633],[979,688],[940,765],
+              [860,870],[850,898],[856,917],[900,934],[961,911],
+              [1020,799],[1077,746],[1168,733],[1271,749],[1324,726],
+              [1336,692],[1315,628],[1345,578],[1320,493]
+          ], np.int32)
+
+          water_main = np.array([
+              [0,278],[0,493],[99,550],[81,665],[238,679],[233,735],
+              [293,694],[327,739],[300,765],[350,777],[240,839],[115,778],
+              [182,941],[0,942],[0,1036],[39,1032],[49,1079],[440,1079],
+              [433,1040],[475,1079],[1409,1079],[1036,829],[948,911],
+              [852,912],[911,779],[691,570],[903,529],[933,465],[1014,511],
+              [1038,431],[587,378],[528,348],[576,298],[374,215],[265,313]
+          ], np.int32)
+
+          water_right = np.array([
+              [1522,574],[1521,598],[1546,626],[1532,642],[1514,647],
+              [1514,658],[1523,667],[1584,681],[1802,751],[1799,748],
+              [1820,716],[1823,699],[1794,677],[1784,653],[1773,651],
+              [1757,670],[1737,679],[1679,669],[1652,647],[1598,643],
+              [1574,633],[1561,617],[1580,601],[1579,583],[1531,568]
+          ], np.int32)
+
+          boat = np.zeros((H,W), np.float32)
+          body = np.zeros((H,W), np.float32)
+          water = np.zeros((H,W), np.float32)
+
+          cv2.fillPoly(boat, [boat_poly], 1.0)
+          cv2.fillPoly(body, [body_poly], 1.0)
+          cv2.fillPoly(water, [water_main, water_right], 1.0)
+
+          # Soft edges avoid seams while preserving object separation.
+          boat = cv2.GaussianBlur(boat, (0,0), 5.0)
+          body = cv2.GaussianBlur(body, (0,0), 4.0)
+          water = cv2.GaussianBlur(water, (0,0), 3.0)
+
           yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
           xn = xx / W
           yn = yy / H
 
-          def ellipse(cx, cy, rx, ry, softness=2.8):
-              q = ((xn-cx)/rx)**2 + ((yn-cy)/ry)**2
-              return np.exp(-q*softness).astype(np.float32)
+          # Breathing should be torso-only, not the leg/foot.
+          torso_fade = np.clip((0.68 - yn) / 0.18, 0, 1)
+          torso_fade *= np.clip((xn - 0.50) / 0.10, 0, 1)
+          body *= torso_fade
 
-          # Character/boat live on the right half of the scene.
-          # Boat mask includes the seated character so they float together.
-          boat = np.maximum(
-              ellipse(.69, .63, .31, .34, 3.2),
-              ellipse(.60, .48, .22, .30, 3.0)
-          )
-          boat = np.clip((boat - .055) / .80, 0, 1)
-
-          # Body-only region for a tiny independent breathing motion.
-          body = ellipse(.62, .43, .14, .23, 3.6)
-          body = np.clip((body - .08) / .78, 0, 1)
-
-          # Water is the lower part of the scene. Remove most of the boat/person
-          # region so waves do not bend the character.
-          water = np.clip((yn - .54) / .34, 0, 1)
-          water *= np.clip(1.0 - boat*.92, 0, 1)
-          water = cv2.GaussianBlur(water, (0,0), 5.0)
+          # Critical: water never displaces the boat, character, or foot.
+          water *= np.clip(1.0 - boat * 0.999, 0, 1)
+          water = cv2.GaussianBlur(water, (0,0), 1.2)
 
           base_x = xx.copy()
           base_y = yy.copy()
-          cx, cy = .62*W, .43*H
+
+          body_mass = body.sum() + 1e-6
+          cx = float((xx * body).sum() / body_mass)
+          cy = float((yy * body).sum() / body_mass)
 
           out = root / 'iuno-loop.mp4'
           cmd = [
-              'ffmpeg', '-y',
-              '-f', 'rawvideo', '-vcodec', 'rawvideo',
-              '-pix_fmt', 'bgr24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-              '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '22',
-              '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+              'ffmpeg','-y',
+              '-f','rawvideo','-vcodec','rawvideo',
+              '-pix_fmt','bgr24','-s',f'{W}x{H}','-r',str(FPS),'-i','-',
+              '-an','-c:v','libx264','-preset','medium','-crf','20',
+              '-pix_fmt','yuv420p',
+              '-x264-params',f'keyint={N}:min-keyint={N}:scenecut=0',
+              '-movflags','+faststart',
               str(out)
           ]
           proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
 
           try:
               for i in range(N):
+                  # Exactly one closed phase circle. All temporal multipliers
+                  # below are integers, so frame N continues smoothly to frame 0.
                   p = 2.0 * math.pi * i / N
 
-                  # Visible water motion: texture ripples, never a whole-layer bob.
+                  # WATER: two periodic wave systems; no whole-water translation.
                   wx = (
-                      5.8*np.sin(xx*(2*math.pi/210.0) + 2.0*p)
-                      + 2.8*np.sin(yy*(2*math.pi/120.0) - 1.0*p)
+                      5.8*np.sin(xx*(2*math.pi/205.0) + p)
+                      + 2.6*np.sin((xx + 0.7*yy)*(2*math.pi/260.0) - 2.0*p)
                   )
                   wy = (
-                      2.2*np.sin(xx*(2*math.pi/170.0) - 1.25*p)
-                      + 1.5*np.sin((xx+yy)*(2*math.pi/270.0) + 1.5*p)
+                      2.4*np.sin(xx*(2*math.pi/175.0) - p)
+                      + 1.6*np.sin((0.6*xx + yy)*(2*math.pi/235.0) + 2.0*p)
                   )
 
-                  # Boat + seated character: slow buoyant motion.
-                  boat_y = 2.5 * math.sin(p)
-                  boat_x = 0.35 * math.sin(p + .65)
+                  # BOAT + PERSON: one slow buoyant cycle. The original boat
+                  # mask includes the seated character, so both move together.
+                  boat_y = 4.2 * math.sin(p)
+                  boat_x = 0.55 * math.cos(p)
 
-                  # Character breathing: coherent torso expansion, extremely weak.
+                  # BODY: tiny coherent breathing, two cycles per loop.
                   breath = math.sin(2.0*p)
-                  sx = 0.00012 * breath
-                  sy = 0.00038 * breath
-                  lift = -0.16 * breath
+                  sx = 0.00014 * breath
+                  sy = 0.00040 * breath
+                  lift = -0.18 * breath
 
                   dx = water*wx + boat*boat_x
                   dy = water*wy + boat*boat_y
@@ -126,8 +169,8 @@ jobs:
                       borderMode=cv2.BORDER_REFLECT101
                   )
 
-                  # Gentle independent shimmer on the water.
-                  shimmer = 1.0 + (0.010*math.sin(p+1.1))*water
+                  # Water shimmer is also exactly periodic.
+                  shimmer = 1.0 + (0.010*math.sin(p))*water
                   frame = np.clip(
                       frame.astype(np.float32)*shimmer[...,None],
                       0,255
