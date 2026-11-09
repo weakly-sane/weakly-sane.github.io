@@ -46,7 +46,7 @@ jobs:
           SCALE_X = W / BASE_W
           SCALE_Y = H / BASE_H
           PIXEL_SCALE = (SCALE_X + SCALE_Y) * 0.5
-          FPS = 24
+          FPS = 165
           SECONDS = 8
           N = FPS * SECONDS
           src = cv2.resize(src, (W, H), interpolation=cv2.INTER_LANCZOS4)
@@ -135,9 +135,9 @@ jobs:
               'ffmpeg','-y',
               '-f','rawvideo','-vcodec','rawvideo',
               '-pix_fmt','bgr24','-s',f'{W}x{H}','-r',str(FPS),'-i','-',
-              '-an','-c:v','libx264','-preset','slow','-crf','19',
+              '-an','-c:v','libx264','-preset','medium','-crf','19',
               '-pix_fmt','yuv420p',
-              '-x264-params',f'keyint={N}:min-keyint={N}:scenecut=0',
+              '-x264-params',f'keyint={FPS*2}:min-keyint={FPS*2}:scenecut=0',
               '-movflags','+faststart',
               str(out)
           ]
