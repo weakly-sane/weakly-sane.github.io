@@ -1,127 +1,184 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="headMetal" x1="4" y1="3" x2="19" y2="18" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset=".18" stop-color="#F7FBFF"/>
-      <stop offset=".50" stop-color="#DDEEFF"/>
-      <stop offset=".78" stop-color="#9CCBFA"/>
-      <stop offset="1" stop-color="#5F9FE8"/>
-    </linearGradient>
-    <linearGradient id="headFacet" x1="5" y1="4" x2="14" y2="14" gradientUnits="userSpaceOnUse">
+    <linearGradient id="crystalMain" x1="3" y1="3" x2="58" y2="58" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF" stop-opacity=".98"/>
-      <stop offset=".58" stop-color="#EAF6FF" stop-opacity=".70"/>
-      <stop offset="1" stop-color="#A6D1FF" stop-opacity=".12"/>
+      <stop offset=".18" stop-color="#EAF8FF" stop-opacity=".92"/>
+      <stop offset=".42" stop-color="#BFE6FF" stop-opacity=".84"/>
+      <stop offset=".68" stop-color="#8CCBFF" stop-opacity=".78"/>
+      <stop offset=".86" stop-color="#C6EAFF" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#6DAEFF" stop-opacity=".74"/>
     </linearGradient>
-    <linearGradient id="shaftMetal" x1="14" y1="14" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+    <linearGradient id="crystalEdge" x1="2" y1="2" x2="60" y2="60" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset=".22" stop-color="#EAF6FF"/>
-      <stop offset=".56" stop-color="#BBDFFF"/>
-      <stop offset=".82" stop-color="#82B9EE"/>
-      <stop offset="1" stop-color="#D7EDFF"/>
+      <stop offset=".34" stop-color="#D9F1FF"/>
+      <stop offset=".72" stop-color="#8CC8FF"/>
+      <stop offset="1" stop-color="#E7F7FF"/>
     </linearGradient>
-    <linearGradient id="fletchA" x1="41" y1="37" x2="59" y2="55" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".94"/>
-      <stop offset=".36" stop-color="#DFF1FF" stop-opacity=".88"/>
-      <stop offset=".72" stop-color="#99C9F8" stop-opacity=".72"/>
-      <stop offset="1" stop-color="#5E9BE3" stop-opacity=".52"/>
+    <linearGradient id="shaftGlass" x1="13" y1="13" x2="55" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".96"/>
+      <stop offset=".22" stop-color="#DFF3FF" stop-opacity=".86"/>
+      <stop offset=".50" stop-color="#8FCBFF" stop-opacity=".78"/>
+      <stop offset=".74" stop-color="#D7F0FF" stop-opacity=".88"/>
+      <stop offset="1" stop-color="#74B6FF" stop-opacity=".76"/>
     </linearGradient>
-    <linearGradient id="fletchB" x1="38" y1="41" x2="55" y2="59" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#EAF7FF" stop-opacity=".92"/>
-      <stop offset=".52" stop-color="#BBDFFF" stop-opacity=".76"/>
-      <stop offset="1" stop-color="#6BA7EA" stop-opacity=".48"/>
+    <linearGradient id="fletchGlassA" x1="39" y1="36" x2="60" y2="57" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".90"/>
+      <stop offset=".28" stop-color="#E1F5FF" stop-opacity=".82"/>
+      <stop offset=".60" stop-color="#A9D9FF" stop-opacity=".70"/>
+      <stop offset=".84" stop-color="#74B8FA" stop-opacity=".56"/>
+      <stop offset="1" stop-color="#D8F0FF" stop-opacity=".76"/>
     </linearGradient>
-    <filter id="softGlow" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="2.0"/>
+    <linearGradient id="fletchGlassB" x1="36" y1="39" x2="57" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F9FDFF" stop-opacity=".90"/>
+      <stop offset=".36" stop-color="#CBEAFF" stop-opacity=".76"/>
+      <stop offset=".72" stop-color="#82C0FA" stop-opacity=".60"/>
+      <stop offset="1" stop-color="#EAF8FF" stop-opacity=".78"/>
+    </linearGradient>
+    <radialGradient id="innerGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(17 15) rotate(45) scale(16)">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".72"/>
+      <stop offset=".44" stop-color="#BDE5FF" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#6AAEFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="1.9"/>
     </filter>
-    <filter id="fineGlow" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation=".75"/>
+    <filter id="microGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation=".55"/>
     </filter>
   </defs>
 
-  <!-- restrained moon-blue aura -->
-  <g opacity=".46" filter="url(#softGlow)">
-    <path d="M4 3.5L20.5 8.8L10.1 19.1L4 3.5Z" fill="#B8DEFF"/>
-    <path d="M12.2 12.1L54.1 54.0" stroke="#7DBBFF" stroke-width="3.8" stroke-linecap="round"/>
-    <path d="M42.4 38.7L60.2 45.5L50.7 55.1L42.4 38.7Z" fill="#7AB8FB"/>
-    <path d="M38.9 42.5L55.1 50.8L45.4 60.2L38.9 42.5Z" fill="#74B2F7"/>
+  <!-- restrained halo -->
+  <g opacity=".42" filter="url(#softGlow)">
+    <path d="M3.2 3.2L21.7 8.8L10.1 20.4L3.2 3.2Z" fill="#B9E2FF"/>
+    <path d="M13.8 13.8L54.6 54.6" stroke="#7BBEFF" stroke-width="4.6" stroke-linecap="round"/>
+    <path d="M40.2 36.1L61.0 45.2L50.6 55.6L40.2 36.1Z" fill="#8AC8FF"/>
+    <path d="M36.1 40.2L55.6 50.6L45.2 61.0L36.1 40.2Z" fill="#78B9FF"/>
   </g>
 
-  <!-- sculpted arrowhead -->
-  <path d="M3.7 3.5L21.2 8.8L10.2 19.8L3.7 3.5Z"
-        fill="url(#headMetal)"
-        stroke="#F7FCFF"
-        stroke-width=".9"
+  <!-- fully crystalline arrowhead -->
+  <path d="M3.4 3.3L22.0 8.9L10.2 20.7L3.4 3.3Z"
+        fill="url(#crystalMain)"
+        stroke="url(#crystalEdge)"
+        stroke-width=".95"
         stroke-linejoin="round"/>
-  <path d="M5.0 4.7L17.4 8.5L9.7 16.1L5.0 4.7Z"
-        fill="url(#headFacet)"/>
-  <path d="M5.9 5.5L13.6 7.8L8.9 12.5"
-        stroke="#FFFFFF"
-        stroke-opacity=".82"
-        stroke-width=".72"
-        stroke-linecap="round"/>
-  <path d="M9.9 19.0L11.8 13.0L20.2 9.5"
-        stroke="#6FA8E9"
-        stroke-opacity=".58"
-        stroke-width=".55"
-        stroke-linecap="round"/>
-
-  <!-- collar -->
-  <path d="M11.1 11.0L15.6 15.5"
+  <path d="M4.9 4.7L17.8 8.7L9.9 16.8L4.9 4.7Z"
+        fill="rgba(255,255,255,.22)"/>
+  <path d="M10.2 20.7L11.8 12.9L22.0 8.9"
+        fill="rgba(95,160,235,.10)"/>
+  <path d="M4.8 4.8L13.4 7.4L8.2 12.7"
         stroke="#FFFFFF"
         stroke-opacity=".88"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        filter="url(#fineGlow)"/>
-  <path d="M11.1 11.0L15.6 15.5"
-        stroke="#B9DFFF"
-        stroke-width="1.05"
+        stroke-width=".72"
         stroke-linecap="round"/>
-
-  <!-- slim faceted shaft -->
-  <path d="M14.4 14.3L53.4 53.3"
-        stroke="#6EADF3"
-        stroke-opacity=".38"
-        stroke-width="3.6"
-        stroke-linecap="round"
-        filter="url(#fineGlow)"/>
-  <path d="M14.4 14.3L53.4 53.3"
-        stroke="url(#shaftMetal)"
-        stroke-width="1.55"
-        stroke-linecap="round"/>
-  <path d="M15.6 15.5L51.8 51.7"
+  <path d="M11.1 10.7L17.7 9.0L10.0 16.8Z"
+        fill="url(#innerGlow)"
+        opacity=".86"/>
+  <path d="M6.2 6.0L8.3 12.0M8.7 7.1L13.1 9.0M10.0 16.0L14.7 11.2"
         stroke="#FFFFFF"
-        stroke-opacity=".64"
+        stroke-opacity=".34"
         stroke-width=".46"
         stroke-linecap="round"/>
 
-  <!-- delicate binding -->
-  <path d="M41.1 39.3L44.7 42.9" stroke="#FFFFFF" stroke-opacity=".72" stroke-width="1.85" stroke-linecap="round"/>
-  <path d="M42.0 38.5L45.6 42.1" stroke="#7CB8F5" stroke-opacity=".58" stroke-width=".62" stroke-linecap="round"/>
-  <path d="M40.3 40.2L43.8 43.7" stroke="#7CB8F5" stroke-opacity=".50" stroke-width=".62" stroke-linecap="round"/>
+  <!-- crystalline collar -->
+  <path d="M11.3 11.2L15.9 15.8"
+        stroke="#9FD2FF"
+        stroke-opacity=".42"
+        stroke-width="3.8"
+        stroke-linecap="round"
+        filter="url(#microGlow)"/>
+  <path d="M11.3 11.2L15.9 15.8"
+        stroke="url(#crystalEdge)"
+        stroke-width="1.45"
+        stroke-linecap="round"/>
 
-  <!-- crystalline fletching -->
-  <path d="M40.8 36.7L60.0 44.7L50.7 54.0L40.8 36.7Z"
-        fill="url(#fletchA)"
-        stroke="#F4FBFF"
+  <!-- entire shaft as a faceted crystal rod -->
+  <path d="M14.5 14.4L54.5 54.4"
+        stroke="#80BFFF"
+        stroke-opacity=".34"
+        stroke-width="4.3"
+        stroke-linecap="round"
+        filter="url(#microGlow)"/>
+  <path d="M14.5 14.4L54.5 54.4"
+        stroke="url(#shaftGlass)"
+        stroke-width="2.0"
+        stroke-linecap="round"/>
+  <path d="M15.6 15.5L53.1 53.0"
+        stroke="#FFFFFF"
         stroke-opacity=".72"
-        stroke-width=".62"
+        stroke-width=".50"
+        stroke-linecap="round"/>
+  <path d="M17.7 18.4L49.8 50.6"
+        stroke="#CFF0FF"
+        stroke-opacity=".34"
+        stroke-width=".36"
+        stroke-linecap="round"/>
+  <path d="M21.0 20.4L23.3 23.7M28.4 27.8L31.1 31.5M36.5 35.7L39.6 39.8M44.1 43.8L47.5 48.0"
+        stroke="#FFFFFF"
+        stroke-opacity=".28"
+        stroke-width=".45"
+        stroke-linecap="round"/>
+
+  <!-- crystal bindings -->
+  <path d="M40.6 38.8L45.2 43.4"
+        stroke="#FFFFFF"
+        stroke-opacity=".66"
+        stroke-width="1.9"
+        stroke-linecap="round"/>
+  <path d="M40.1 39.4L44.6 43.9"
+        stroke="#74B8F6"
+        stroke-opacity=".40"
+        stroke-width=".75"
+        stroke-linecap="round"/>
+
+  <!-- crystalline fletching: translucent faceted blades, not feathers -->
+  <path d="M40.0 35.9L61.0 44.5L50.5 55.0L40.0 35.9Z"
+        fill="url(#fletchGlassA)"
+        stroke="url(#crystalEdge)"
+        stroke-opacity=".82"
+        stroke-width=".72"
         stroke-linejoin="round"/>
-  <path d="M36.7 40.8L54.0 50.7L44.7 60.0L36.7 40.8Z"
-        fill="url(#fletchB)"
-        stroke="#EAF6FF"
-        stroke-opacity=".62"
-        stroke-width=".62"
+  <path d="M35.9 40.0L55.0 50.5L44.5 61.0L35.9 40.0Z"
+        fill="url(#fletchGlassB)"
+        stroke="url(#crystalEdge)"
+        stroke-opacity=".74"
+        stroke-width=".72"
         stroke-linejoin="round"/>
 
-  <!-- feather facets / ribs -->
-  <path d="M43.3 40.1L54.7 44.9" stroke="#FFFFFF" stroke-opacity=".46" stroke-width=".52" stroke-linecap="round"/>
-  <path d="M46.1 42.2L56.9 46.6" stroke="#BFE2FF" stroke-opacity=".42" stroke-width=".48" stroke-linecap="round"/>
-  <path d="M40.1 43.3L44.9 54.7" stroke="#FFFFFF" stroke-opacity=".38" stroke-width=".52" stroke-linecap="round"/>
-  <path d="M42.2 46.1L46.6 56.9" stroke="#BFE2FF" stroke-opacity=".34" stroke-width=".48" stroke-linecap="round"/>
+  <!-- prism facets inside the fletching -->
+  <path d="M42.0 39.2L54.6 44.6L49.6 49.6L42.0 39.2Z"
+        fill="#FFFFFF" fill-opacity=".16"/>
+  <path d="M39.2 42.0L49.6 49.6L44.6 54.6L39.2 42.0Z"
+        fill="#BFE6FF" fill-opacity=".14"/>
+  <path d="M42.8 39.8L56.0 45.2"
+        stroke="#FFFFFF" stroke-opacity=".46" stroke-width=".50" stroke-linecap="round"/>
+  <path d="M46.0 42.1L58.0 47.0"
+        stroke="#C7E8FF" stroke-opacity=".34" stroke-width=".42" stroke-linecap="round"/>
+  <path d="M39.8 42.8L45.2 56.0"
+        stroke="#FFFFFF" stroke-opacity=".38" stroke-width=".50" stroke-linecap="round"/>
+  <path d="M42.1 46.0L47.0 58.0"
+        stroke="#C7E8FF" stroke-opacity=".30" stroke-width=".42" stroke-linecap="round"/>
 
-  <!-- nock jewel / termination -->
-  <circle cx="53.5" cy="53.5" r="1.55" fill="#EFF9FF" stroke="#8BC5FF" stroke-width=".65"/>
-  <circle cx="53.5" cy="53.5" r=".55" fill="#FFFFFF"/>
-  <path d="M54.8 54.8L59.2 59.2" stroke="#DCEFFF" stroke-width="1.12" stroke-linecap="round"/>
-  <path d="M57.3 57.2L60.3 54.3" stroke="#76B2F4" stroke-width=".78" stroke-linecap="round"/>
+  <!-- crystal nock -->
+  <circle cx="54.2" cy="54.2" r="2.05"
+          fill="url(#crystalMain)"
+          stroke="#EAF8FF"
+          stroke-opacity=".84"
+          stroke-width=".75"/>
+  <circle cx="54.0" cy="53.9" r=".72" fill="#FFFFFF" fill-opacity=".72"/>
+  <path d="M55.6 55.6L60.2 60.2"
+        stroke="url(#shaftGlass)"
+        stroke-width="1.35"
+        stroke-linecap="round"/>
+  <path d="M58.1 58.0L61.0 55.2"
+        stroke="#A8D6FF"
+        stroke-width=".78"
+        stroke-linecap="round"/>
+
+  <!-- tiny prismatic glints -->
+  <g fill="#FFFFFF">
+    <circle cx="15.1" cy="14.2" r=".55" opacity=".82"/>
+    <circle cx="31.6" cy="31.0" r=".42" opacity=".58"/>
+    <circle cx="48.3" cy="47.6" r=".48" opacity=".70"/>
+    <circle cx="45.8" cy="41.8" r=".40" opacity=".52"/>
+  </g>
 </svg>
