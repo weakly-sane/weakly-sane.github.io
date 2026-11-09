@@ -41,11 +41,15 @@ jobs:
           if src is None:
               raise SystemExit('Wallpaper image is missing')
 
-          W, H = 1920, 1080
+          BASE_W, BASE_H = 1920, 1080
+          W, H = 3840, 2160
+          SCALE_X = W / BASE_W
+          SCALE_Y = H / BASE_H
+          PIXEL_SCALE = (SCALE_X + SCALE_Y) * 0.5
           FPS = 24
           SECONDS = 8
           N = FPS * SECONDS
-          src = cv2.resize(src, (W, H), interpolation=cv2.INTER_AREA)
+          src = cv2.resize(src, (W, H), interpolation=cv2.INTER_LANCZOS4)
 
           # These polygons are simplified from the original Wallpaper Engine
           # masks extracted from scene.pkg (coordinates at 1920x1080).
@@ -82,6 +86,17 @@ jobs:
               [1574,633],[1561,617],[1580,601],[1579,583],[1531,568]
           ], np.int32)
 
+          def scale_poly(poly):
+              p = poly.astype(np.float32)
+              p[:, 0] *= SCALE_X
+              p[:, 1] *= SCALE_Y
+              return np.rint(p).astype(np.int32)
+
+          boat_poly = scale_poly(boat_poly)
+          body_poly = scale_poly(body_poly)
+          water_main = scale_poly(water_main)
+          water_right = scale_poly(water_right)
+
           boat = np.zeros((H,W), np.float32)
           body = np.zeros((H,W), np.float32)
           water = np.zeros((H,W), np.float32)
@@ -91,9 +106,9 @@ jobs:
           cv2.fillPoly(water, [water_main, water_right], 1.0)
 
           # Soft edges avoid seams while preserving object separation.
-          boat = cv2.GaussianBlur(boat, (0,0), 5.0)
-          body = cv2.GaussianBlur(body, (0,0), 4.0)
-          water = cv2.GaussianBlur(water, (0,0), 3.0)
+          boat = cv2.GaussianBlur(boat, (0,0), 5.0 * PIXEL_SCALE)
+          body = cv2.GaussianBlur(body, (0,0), 4.0 * PIXEL_SCALE)
+          water = cv2.GaussianBlur(water, (0,0), 3.0 * PIXEL_SCALE)
 
           yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
           xn = xx / W
@@ -106,7 +121,7 @@ jobs:
 
           # Critical: water never displaces the boat, character, or foot.
           water *= np.clip(1.0 - boat * 0.999, 0, 1)
-          water = cv2.GaussianBlur(water, (0,0), 1.2)
+          water = cv2.GaussianBlur(water, (0,0), 1.2 * PIXEL_SCALE)
 
           base_x = xx.copy()
           base_y = yy.copy()
@@ -120,7 +135,7 @@ jobs:
               'ffmpeg','-y',
               '-f','rawvideo','-vcodec','rawvideo',
               '-pix_fmt','bgr24','-s',f'{W}x{H}','-r',str(FPS),'-i','-',
-              '-an','-c:v','libx264','-preset','medium','-crf','20',
+              '-an','-c:v','libx264','-preset','slow','-crf','19',
               '-pix_fmt','yuv420p',
               '-x264-params',f'keyint={N}:min-keyint={N}:scenecut=0',
               '-movflags','+faststart',
@@ -136,24 +151,24 @@ jobs:
 
                   # WATER: two periodic wave systems; no whole-water translation.
                   wx = (
-                      5.8*np.sin(xx*(2*math.pi/205.0) + p)
-                      + 2.6*np.sin((xx + 0.7*yy)*(2*math.pi/260.0) - 2.0*p)
+                      (5.8*PIXEL_SCALE)*np.sin(xx*(2*math.pi/(205.0*PIXEL_SCALE)) + p)
+                      + (2.6*PIXEL_SCALE)*np.sin((xx + 0.7*yy)*(2*math.pi/(260.0*PIXEL_SCALE)) - 2.0*p)
                   )
                   wy = (
-                      2.4*np.sin(xx*(2*math.pi/175.0) - p)
-                      + 1.6*np.sin((0.6*xx + yy)*(2*math.pi/235.0) + 2.0*p)
+                      (2.4*PIXEL_SCALE)*np.sin(xx*(2*math.pi/(175.0*PIXEL_SCALE)) - p)
+                      + (1.6*PIXEL_SCALE)*np.sin((0.6*xx + yy)*(2*math.pi/(235.0*PIXEL_SCALE)) + 2.0*p)
                   )
 
                   # BOAT + PERSON: one slow buoyant cycle. The original boat
                   # mask includes the seated character, so both move together.
-                  boat_y = 4.2 * math.sin(p)
-                  boat_x = 0.55 * math.cos(p)
+                  boat_y = (4.2 * PIXEL_SCALE) * math.sin(p)
+                  boat_x = (0.55 * PIXEL_SCALE) * math.cos(p)
 
                   # BODY: tiny coherent breathing, two cycles per loop.
                   breath = math.sin(2.0*p)
                   sx = 0.00050 * breath
                   sy = 0.00280 * breath
-                  lift = -1.05 * breath
+                  lift = (-1.05 * PIXEL_SCALE) * breath
 
                   dx = water*wx + boat*boat_x
                   dy = water*wy + boat*boat_y
