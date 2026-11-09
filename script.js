@@ -472,21 +472,56 @@ if (year) year.textContent = new Date().getFullYear();
       float trailWidth = .045 + suv.y * .135;
       float moonTrail = exp(-pow((suv.x - trailCenter) / trailWidth, 2.0));
 
-      float glitter1 = .5 + .5 * sin(suv.x * 220.0 + suv.y * 84.0 + u_time * 2.8 + ringWave * 5.0);
-      float glitter2 = .5 + .5 * sin(suv.x * 119.0 - suv.y * 173.0 - u_time * 2.1);
-      float glitter = pow(max(0.0, glitter1 * .64 + glitter2 * .54 - .60), 5.0);
+      // Shimmer should read as broken horizontal silver streaks, not isolated dots.
+      // Several scales overlap so the reflected moonlight continuously breaks and reforms.
+      float wideTrail = exp(-pow((suv.x - trailCenter) / (trailWidth * 1.72), 2.0));
 
-      vec3 moon = vec3(.78, .88, 1.0);
-      base += moon * moonTrail * (.055 + glitter * .55);
-      base += moon * crest * moonTrail * .20;
+      float streakA =
+        pow(max(0.0, sin(suv.y * 315.0 + u_time * 3.65 + ringWave * 10.0)), 18.0) *
+        pow(.5 + .5 * sin(suv.x * 46.0 - u_time * 1.15 + fineWave * 8.0), 2.2);
 
-      // Sparse tiny blue-white water sparkles, like the wallpaper.
-      float speck =
+      float streakB =
+        pow(max(0.0, sin(suv.y * 188.0 - u_time * 2.35 - ringWave * 7.0 + 1.2)), 15.0) *
+        pow(.5 + .5 * sin(suv.x * 73.0 + u_time * 1.75), 3.0);
+
+      float streakC =
+        pow(max(0.0, sin(suv.y * 470.0 + u_time * 5.0 + ringWave * 13.0 + 2.4)), 24.0) *
+        pow(.5 + .5 * sin(suv.x * 118.0 - u_time * 2.4), 4.0);
+
+      // Moving fragmentation keeps the streaks from looking like regular scan lines.
+      float breakA = .48 + .52 * sin(suv.x * 151.0 + suv.y * 41.0 + u_time * 2.05);
+      float breakB = .48 + .52 * sin(suv.x * 97.0 - suv.y * 68.0 - u_time * 1.63 + 1.8);
+      float fragments = smoothstep(.10, .90, breakA * .57 + breakB * .57);
+
+      float shimmer =
+        (streakA * .75 + streakB * .62 + streakC * .48) *
+        (.30 + .70 * fragments);
+
+      // Occasional very bright glints give the surface the "sparkling scales" feeling.
+      float flashField =
+        (.5 + .5 * sin(suv.x * 207.0 + suv.y * 131.0 + u_time * 3.2)) *
+        (.5 + .5 * sin(suv.x * 89.0 - suv.y * 247.0 - u_time * 2.6 + 2.1));
+      float flashes = pow(max(0.0, flashField - .48) * 1.92, 10.0);
+
+      vec3 moon = vec3(.82, .91, 1.0);
+
+      // A soft reflected lane underneath the bright fragments.
+      base += moon * moonTrail * .085;
+
+      // Strong broken silver-blue highlights.
+      base += moon * wideTrail * shimmer * .78;
+      base += vec3(.90, .96, 1.0) * wideTrail * flashes * .72;
+
+      // Ripple crests catch the light more strongly as they cross the reflection path.
+      base += moon * crest * wideTrail * (.23 + shimmer * .34);
+
+      // A few weaker sparkles outside the main reflection lane keep the water alive.
+      float outerSpark =
         pow(max(0.0,
-          sin((suv.x * 313.0 + suv.y * 157.0) + u_time * .23) *
-          sin((suv.x * 181.0 - suv.y * 271.0) - u_time * .19)
-        ), 14.0);
-      base += vec3(.62, .83, 1.0) * speck * .12;
+          sin((suv.x * 283.0 + suv.y * 163.0) + u_time * .72) *
+          sin((suv.x * 173.0 - suv.y * 257.0) - u_time * .61)
+        ), 12.0);
+      base += vec3(.54, .76, 1.0) * outerSpark * .105;
 
       // Keep headings/body text readable even where the moon reflection passes.
       float centerReadability = smoothstep(.95, .18, length((suv - vec2(.48,.52)) * vec2(.88,1.0)));
