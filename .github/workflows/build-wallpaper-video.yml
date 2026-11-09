@@ -36,12 +36,8 @@ jobs:
 
           root = Path('assets/wallpaper')
           src = cv2.imread(str(root / 'iuno.jpg'), cv2.IMREAD_COLOR)
-          body = cv2.imread(str(root / 'body-mask.png'), cv2.IMREAD_GRAYSCALE)
-          boat = cv2.imread(str(root / 'boat-mask.png'), cv2.IMREAD_GRAYSCALE)
-          water = cv2.imread(str(root / 'water-mask.png'), cv2.IMREAD_GRAYSCALE)
-
-          if src is None or body is None or boat is None or water is None:
-              raise SystemExit('Wallpaper assets are missing')
+          if src is None:
+              raise SystemExit('Wallpaper image is missing')
 
           W, H = 1920, 1080
           FPS = 24
@@ -49,23 +45,35 @@ jobs:
           N = FPS * SECONDS
 
           src = cv2.resize(src, (W, H), interpolation=cv2.INTER_AREA)
-          body = cv2.resize(body, (W, H), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255.0
-          boat = cv2.resize(boat, (W, H), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255.0
-          water = cv2.resize(water, (W, H), interpolation=cv2.INTER_LINEAR).astype(np.float32) / 255.0
-
-          # Soften mask edges; keep the three motions independent.
-          body = cv2.GaussianBlur(body, (0, 0), 2.0)
-          boat = cv2.GaussianBlur(boat, (0, 0), 2.2)
-          water = cv2.GaussianBlur(water, (0, 0), 1.6)
-
           yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+          xn = xx / W
+          yn = yy / H
+
+          def ellipse(cx, cy, rx, ry, softness=2.8):
+              q = ((xn-cx)/rx)**2 + ((yn-cy)/ry)**2
+              return np.exp(-q*softness).astype(np.float32)
+
+          # Character/boat live on the right half of the scene.
+          # Boat mask includes the seated character so they float together.
+          boat = np.maximum(
+              ellipse(.69, .63, .31, .34, 3.2),
+              ellipse(.60, .48, .22, .30, 3.0)
+          )
+          boat = np.clip((boat - .055) / .80, 0, 1)
+
+          # Body-only region for a tiny independent breathing motion.
+          body = ellipse(.62, .43, .14, .23, 3.6)
+          body = np.clip((body - .08) / .78, 0, 1)
+
+          # Water is the lower part of the scene. Remove most of the boat/person
+          # region so waves do not bend the character.
+          water = np.clip((yn - .54) / .34, 0, 1)
+          water *= np.clip(1.0 - boat*.92, 0, 1)
+          water = cv2.GaussianBlur(water, (0,0), 5.0)
+
           base_x = xx.copy()
           base_y = yy.copy()
-
-          # Body center for a tiny breathing expansion.
-          body_mass = body.sum() + 1e-6
-          cx = float((xx * body).sum() / body_mass)
-          cy = float((yy * body).sum() / body_mass)
+          cx, cy = .62*W, .43*H
 
           out = root / 'iuno-loop.mp4'
           cmd = [
@@ -82,50 +90,46 @@ jobs:
               for i in range(N):
                   p = 2.0 * math.pi * i / N
 
-                  # WATER: texture ripple only. No global vertical translation.
-                  # Two wave systems with different wavelengths create visible,
-                  # organic surface motion while the mask confines it to water.
+                  # Visible water motion: texture ripples, never a whole-layer bob.
                   wx = (
-                      5.2 * np.sin(xx * (2.0 * math.pi / 210.0) + p * 1.8)
-                      + 2.4 * np.sin(yy * (2.0 * math.pi / 115.0) - p * 1.15)
+                      5.8*np.sin(xx*(2*math.pi/210.0) + 2.0*p)
+                      + 2.8*np.sin(yy*(2*math.pi/120.0) - 1.0*p)
                   )
                   wy = (
-                      2.0 * np.sin(xx * (2.0 * math.pi / 165.0) - p * 1.25)
-                      + 1.3 * np.sin((xx + yy) * (2.0 * math.pi / 260.0) + p * 1.5)
+                      2.2*np.sin(xx*(2*math.pi/170.0) - 1.25*p)
+                      + 1.5*np.sin((xx+yy)*(2*math.pi/270.0) + 1.5*p)
                   )
 
-                  # BOAT + CHARACTER: one slow buoyant cycle over the loop.
-                  # Because the boat mask includes the seated character, they
-                  # rise/fall together naturally.
-                  boat_y = 2.8 * math.sin(p)
-                  boat_x = 0.45 * math.sin(p + 0.7)
+                  # Boat + seated character: slow buoyant motion.
+                  boat_y = 2.5 * math.sin(p)
+                  boat_x = 0.35 * math.sin(p + .65)
 
-                  # BODY BREATHING: extremely subtle, two breaths per loop.
-                  # This is a coherent expansion around the body center, not a wave.
-                  breath = math.sin(2.0 * p)
-                  body_scale_x = 0.00018 * breath
-                  body_scale_y = 0.00055 * breath
-                  body_lift = -0.22 * breath
+                  # Character breathing: coherent torso expansion, extremely weak.
+                  breath = math.sin(2.0*p)
+                  sx = 0.00012 * breath
+                  sy = 0.00038 * breath
+                  lift = -0.16 * breath
 
-                  dx = water * wx + boat * boat_x
-                  dy = water * wy + boat * boat_y
+                  dx = water*wx + boat*boat_x
+                  dy = water*wy + boat*boat_y
 
-                  dx += body * ((xx - cx) * body_scale_x)
-                  dy += body * ((yy - cy) * body_scale_y + body_lift)
-
-                  map_x = (base_x - dx).astype(np.float32)
-                  map_y = (base_y - dy).astype(np.float32)
+                  dx += body*((xx-cx)*sx)
+                  dy += body*((yy-cy)*sy + lift)
 
                   frame = cv2.remap(
-                      src, map_x, map_y,
+                      src,
+                      (base_x-dx).astype(np.float32),
+                      (base_y-dy).astype(np.float32),
                       interpolation=cv2.INTER_CUBIC,
                       borderMode=cv2.BORDER_REFLECT101
                   )
 
-                  # A very small light pulse on the water only, synchronized
-                  # with neither boat nor breathing.
-                  shimmer = 1.0 + (0.012 * math.sin(p * 1.0 + 1.1)) * water
-                  frame = np.clip(frame.astype(np.float32) * shimmer[..., None], 0, 255).astype(np.uint8)
+                  # Gentle independent shimmer on the water.
+                  shimmer = 1.0 + (0.010*math.sin(p+1.1))*water
+                  frame = np.clip(
+                      frame.astype(np.float32)*shimmer[...,None],
+                      0,255
+                  ).astype(np.uint8)
 
                   proc.stdin.write(frame.tobytes())
           finally:
@@ -146,4 +150,5 @@ jobs:
           git add assets/wallpaper/iuno-loop.mp4
           git diff --cached --quiet && exit 0
           git commit -m 'Build animated wallpaper loop'
+          git pull --rebase origin main
           git push
