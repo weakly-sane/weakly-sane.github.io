@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40" fill="none">
+  <defs>
+    <linearGradient id="f" x1="3" y1="2" x2="22" y2="37" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset=".38" stop-color="#EEF8FF"/>
+      <stop offset=".72" stop-color="#CBE7FF"/>
+      <stop offset="1" stop-color="#86C1FF"/>
+    </linearGradient>
+    <linearGradient id="s" x1="3" y1="2" x2="22" y2="37" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#75B8FF"/>
+    </linearGradient>
+    <filter id="g" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="1.15"/>
+    </filter>
+  </defs>
+  <path d="M3 2.5L25.2 23.8L17.1 25.4L21.3 36.4L17.5 37.8L13.3 26.7L6.5 32.3L3 2.5Z" fill="#8FC8FF" opacity=".42" filter="url(#g)"/>
+  <path d="M3 2.5L25.2 23.8L17.1 25.4L21.3 36.4L17.5 37.8L13.3 26.7L6.5 32.3L3 2.5Z" fill="url(#f)" stroke="url(#s)" stroke-width=".95" stroke-linejoin="round"/>
+  <path d="M4.8 5.7L21.9 22.0L15.2 23.4" stroke="#FFFFFF" stroke-opacity=".74" stroke-width=".8" stroke-linecap="round"/>
+</svg>
