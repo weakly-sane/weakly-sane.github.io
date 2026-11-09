@@ -307,3 +307,232 @@ if (year) year.textContent = new Date().getFullYear();
 
   requestAnimationFrame(frame);
 })();
+
+
+(() => {
+  const canvas = document.getElementById('content-water-canvas');
+  const cover = document.querySelector('.wallpaper-cover');
+  if (!canvas) return;
+
+  const gl = canvas.getContext('webgl', {
+    alpha: false,
+    antialias: false,
+    depth: false,
+    stencil: false,
+    powerPreference: 'high-performance'
+  });
+
+  if (!gl) return;
+
+  const vertexSource = `
+    attribute vec2 a_position;
+    void main() {
+      gl_Position = vec4(a_position, 0.0, 1.0);
+    }
+  `;
+
+  const fragmentSource = `
+    precision highp float;
+
+    uniform vec2 u_resolution;
+    uniform float u_time;
+
+    const float PI = 3.141592653589793;
+
+    float waterHeight(vec2 p, float t) {
+      float h = 0.0;
+
+      vec2 d1 = normalize(vec2(1.0, 0.22));
+      vec2 d2 = normalize(vec2(-0.42, 1.0));
+      vec2 d3 = normalize(vec2(0.72, 0.69));
+      vec2 d4 = normalize(vec2(-0.91, 0.28));
+
+      h += sin(dot(p, d1) * 3.2 + t * 0.72) * 0.145;
+      h += sin(dot(p, d2) * 5.4 - t * 0.94 + 0.8) * 0.080;
+      h += sin(dot(p, d3) * 8.8 + t * 1.28 + 1.7) * 0.046;
+      h += sin(dot(p, d4) * 13.5 - t * 1.62 + 2.1) * 0.024;
+
+      h += sin(p.x * 2.3 - p.y * 1.65 + t * 0.45 + sin(p.y * 0.9)) * 0.033;
+      h += sin(p.x * 18.0 + p.y * 8.0 - t * 2.0) * 0.010;
+
+      vec2 c1 = vec2(1.35, 3.45);
+      float r1 = length((p - c1) * vec2(1.0, 0.72));
+      h += sin(r1 * 10.5 - t * 1.62) * exp(-r1 * 0.38) * 0.020;
+
+      vec2 c2 = vec2(-1.9, 5.8);
+      float r2 = length((p - c2) * vec2(1.0, 0.78));
+      h += sin(r2 * 8.6 - t * 1.25 + 1.3) * exp(-r2 * 0.31) * 0.014;
+
+      return h;
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      float aspect = u_resolution.x / u_resolution.y;
+
+      // Perspective projection of an effectively endless water plane.
+      float y = clamp(uv.y, 0.02, 1.0);
+      float farScale = mix(8.6, 2.7, pow(y, 0.78));
+      vec2 p = vec2(
+        (uv.x - 0.5) * aspect * farScale,
+        mix(8.4, 0.55, pow(y, 0.72))
+      );
+
+      float eps = 0.018;
+      float hx = waterHeight(p + vec2(eps, 0.0), u_time)
+               - waterHeight(p - vec2(eps, 0.0), u_time);
+      float hz = waterHeight(p + vec2(0.0, eps), u_time)
+               - waterHeight(p - vec2(0.0, eps), u_time);
+
+      vec3 N = normalize(vec3(-hx * 7.2, 1.0, -hz * 7.2));
+
+      // Camera looking down the surface; moon is above/right and outside the viewport.
+      vec3 V = normalize(vec3((0.5 - uv.x) * 0.20, 1.15, 0.88));
+      vec3 L = normalize(vec3(0.88, 1.42, -0.62));
+      vec3 H = normalize(V + L);
+
+      float ndv = max(dot(N, V), 0.0);
+      float ndh = max(dot(N, H), 0.0);
+
+      float fresnel = pow(1.0 - ndv, 4.0);
+      float broadSpec = pow(ndh, 26.0);
+      float sharpSpec = pow(ndh, 115.0);
+
+      // A diagonal moon-glitter path, widening toward the viewer.
+      float trailCenter = 0.79 - uv.y * 0.20;
+      float trailWidth = 0.055 + uv.y * 0.18;
+      float trail = exp(-pow((uv.x - trailCenter) / trailWidth, 2.0));
+
+      // Break the reflection into small moving shards on wave crests.
+      float shardA = 0.5 + 0.5 * sin(p.x * 21.0 + p.y * 7.0 + u_time * 2.25);
+      float shardB = 0.5 + 0.5 * sin(p.x * 11.0 - p.y * 15.0 - u_time * 1.72);
+      float shards = smoothstep(0.47, 0.96, shardA * 0.60 + shardB * 0.62);
+
+      float moonSpec = trail * (
+        broadSpec * 0.92 +
+        sharpSpec * (1.15 + shards * 1.85)
+      );
+
+      // Cool reflection from the night sky, stronger toward the horizon.
+      float horizon = pow(1.0 - uv.y, 2.2);
+      vec3 deep = vec3(0.010, 0.038, 0.061);
+      vec3 mid = vec3(0.018, 0.092, 0.132);
+      vec3 sky = vec3(0.095, 0.165, 0.235);
+
+      vec3 color = mix(deep, mid, 0.30 + 0.45 * y);
+      color += sky * fresnel * (0.26 + horizon * 0.32);
+
+      // Fine wave-face brightness, kept subtle so the surface stays natural.
+      float slopeLight = clamp(N.y * 0.65 + N.x * 0.16 - N.z * 0.10, 0.0, 1.0);
+      color += vec3(0.035, 0.085, 0.115) * slopeLight * 0.38;
+
+      vec3 moonColor = vec3(0.78, 0.88, 1.0);
+      color += moonColor * moonSpec * 0.72;
+
+      // Sparse pinprick sparkles inside the reflected path.
+      float micro = pow(max(0.0, sin(p.x * 31.0 + u_time * 3.0)
+                                  * sin(p.y * 23.0 - u_time * 2.3)), 8.0);
+      color += moonColor * trail * sharpSpec * micro * 1.10;
+
+      // Slight haze in the distance makes perspective feel less synthetic.
+      color = mix(color, vec3(0.055, 0.105, 0.155), horizon * 0.13);
+
+      // Mild vignette keeps text readable at the edges.
+      vec2 q = uv - 0.5;
+      float vignette = smoothstep(0.78, 0.25, dot(q, q));
+      color *= 0.86 + 0.14 * vignette;
+
+      // Simple display gamma.
+      color = pow(color, vec3(0.92));
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `;
+
+  function compile(type, source) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.warn('Water shader compile failed:', gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+
+  const vs = compile(gl.VERTEX_SHADER, vertexSource);
+  const fs = compile(gl.FRAGMENT_SHADER, fragmentSource);
+  if (!vs || !fs) return;
+
+  const program = gl.createProgram();
+  gl.attachShader(program, vs);
+  gl.attachShader(program, fs);
+  gl.linkProgram(program);
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    console.warn('Water shader link failed:', gl.getProgramInfoLog(program));
+    return;
+  }
+
+  gl.useProgram(program);
+
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+    gl.STATIC_DRAW
+  );
+
+  const position = gl.getAttribLocation(program, 'a_position');
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+  const resolution = gl.getUniformLocation(program, 'u_resolution');
+  const time = gl.getUniformLocation(program, 'u_time');
+
+  let active = true;
+  let lastRender = 0;
+  const started = performance.now();
+
+  function resize() {
+    const cssW = Math.max(1, window.innerWidth);
+    const cssH = Math.max(1, window.innerHeight);
+
+    // Background detail does not need native 4K resolution.
+    const maxW = 1800;
+    const scale = Math.min(1, maxW / cssW, window.devicePixelRatio || 1);
+    const w = Math.max(1, Math.round(cssW * scale));
+    const h = Math.max(1, Math.round(cssH * scale));
+
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      gl.viewport(0, 0, w, h);
+    }
+  }
+
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  if (cover) {
+    new IntersectionObserver(entries => {
+      const ratio = entries[0]?.intersectionRatio ?? 0;
+      active = ratio < 0.55;
+    }, { threshold: [0, .25, .55, 1] }).observe(cover);
+  }
+
+  function frame(now) {
+    // ~45 fps is enough for water and significantly cheaper than 90/165 fps.
+    if (active && !document.hidden && now - lastRender >= 22) {
+      lastRender = now;
+      gl.useProgram(program);
+      gl.uniform2f(resolution, canvas.width, canvas.height);
+      gl.uniform1f(time, (now - started) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
