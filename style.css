@@ -7,7 +7,7 @@
   --accent: #173b72;
   --accent-soft: #e8edf5;
   --max: 1120px;
-  --wallpaper: url("https://images.steamusercontent.com/ugc/11997909639098621526/8DC7F56419FFAA39ADE80567B878B94A3C2D0E54/?ima=fit&imcolor=%23000000&imh=2160&impolicy=Letterbox&imw=3840&letterbox=true");
+  --wallpaper: url("assets/wallpaper/iuno.jpg?v=2");
 }
 
 * { box-sizing: border-box; }
@@ -53,45 +53,11 @@ a { color: inherit; }
   background-repeat: no-repeat;
   transform-origin: center center;
 }
-.base-layer {
-  animation: scene-breathe 11s ease-in-out infinite alternate;
-}
-.motion-hair {
-  -webkit-mask-image: url("assets/wallpaper/body-mask.png?v=1");
-  mask-image: url("assets/wallpaper/body-mask.png?v=1");
-  -webkit-mask-size: cover;
-  mask-size: cover;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  transform-origin: 64% 45%;
-  animation: body-breathe 4.9s ease-in-out infinite;
-}
-.motion-ribbon {
-  -webkit-mask-image: url("assets/wallpaper/boat-mask.png?v=1");
-  mask-image: url("assets/wallpaper/boat-mask.png?v=1");
-  -webkit-mask-size: cover;
-  mask-size: cover;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  transform-origin: 66% 59%;
-  animation: boat-bob 6.2s ease-in-out infinite;
-}
+.base-layer { animation: none; }
+.motion-hair,
+.motion-ribbon,
 .motion-water {
-  display: block;
-  -webkit-mask-image: url("assets/wallpaper/water-mask.png?v=1");
-  mask-image: url("assets/wallpaper/water-mask.png?v=1");
-  -webkit-mask-size: cover;
-  mask-size: cover;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  filter: url("#water-ripple-filter");
-  animation: water-surface-drift 7.4s ease-in-out infinite alternate;
+  display: none;
 }
 .moon-glow {
   pointer-events: none;
@@ -103,7 +69,7 @@ a { color: inherit; }
 }
 #wallpaper-canvas {
   z-index: 1;
-  display: none;
+  display: block;
   pointer-events: none;
 }
 #particle-canvas {
