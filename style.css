@@ -713,7 +713,6 @@ body {
   height: 100%;
   z-index: 8;
   pointer-events: none;
-  mix-blend-mode: screen;
 }
 
 @keyframes content-moon-rays {
@@ -881,4 +880,33 @@ footer {
   .content-aurora {
     animation: none;
   }
+}
+
+
+/* Wallpaper-water legibility tuning */
+main h2,
+main h3,
+main p,
+main .section-label,
+footer {
+  text-shadow: 0 2px 14px rgba(2, 8, 18, .42);
+}
+
+.section {
+  position: relative;
+}
+
+.section::before {
+  content: "";
+  position: absolute;
+  inset: 18px -20px;
+  z-index: -1;
+  border-radius: 28px;
+  background: linear-gradient(
+    180deg,
+    rgba(4, 13, 24, .06),
+    rgba(4, 13, 24, .16) 48%,
+    rgba(4, 13, 24, .08)
+  );
+  pointer-events: none;
 }
