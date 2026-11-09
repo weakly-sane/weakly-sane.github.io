@@ -40,12 +40,12 @@ if (year) year.textContent = new Date().getFullYear();
   const about = document.getElementById('about');
   if (!audio || !toggle || !volume || !cover) return;
 
-  const DEFAULT_VOLUME = 0.14;
-  const saved = Number.parseFloat(localStorage.getItem('wallpaper-bgm-volume') || '');
+  const DEFAULT_VOLUME = 0.07;
+  const saved = Number.parseFloat(localStorage.getItem('wallpaper-bgm-volume-v2') || '');
   let preferredVolume = Number.isFinite(saved)
     ? Math.max(0, Math.min(1, saved))
     : DEFAULT_VOLUME;
-  let muted = localStorage.getItem('wallpaper-bgm-muted') === '1';
+  let muted = localStorage.getItem('wallpaper-bgm-muted-v2') === '1';
   let coverActive = true;
   let fadeId = 0;
 
@@ -95,18 +95,26 @@ if (year) year.textContent = new Date().getFullYear();
   playOnCover();
   const unlock = () => {
     playOnCover();
-    window.removeEventListener('pointerdown', unlock);
-    window.removeEventListener('keydown', unlock);
-    window.removeEventListener('touchstart', unlock);
+    if (!audio.paused) {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('click', unlock);
+      window.removeEventListener('mousemove', unlock);
+      window.removeEventListener('wheel', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('touchstart', unlock);
+    }
   };
   window.addEventListener('pointerdown', unlock, { passive: true });
+  window.addEventListener('click', unlock, { passive: true });
+  window.addEventListener('mousemove', unlock, { passive: true });
+  window.addEventListener('wheel', unlock, { passive: true });
   window.addEventListener('keydown', unlock);
   window.addEventListener('touchstart', unlock, { passive: true });
 
   toggle.addEventListener('click', () => {
     muted = !muted;
     audio.muted = muted;
-    localStorage.setItem('wallpaper-bgm-muted', muted ? '1' : '0');
+    localStorage.setItem('wallpaper-bgm-muted-v2', muted ? '1' : '0');
     syncControl();
     if (!muted) playOnCover();
   });
@@ -117,9 +125,9 @@ if (year) year.textContent = new Date().getFullYear();
     if (preferredVolume > 0) {
       muted = false;
       audio.muted = false;
-      localStorage.setItem('wallpaper-bgm-muted', '0');
+      localStorage.setItem('wallpaper-bgm-muted-v2', '0');
     }
-    localStorage.setItem('wallpaper-bgm-volume', String(preferredVolume));
+    localStorage.setItem('wallpaper-bgm-volume-v2', String(preferredVolume));
     syncControl();
     playOnCover();
   });
@@ -207,9 +215,9 @@ if (year) year.textContent = new Date().getFullYear();
     r: 0.75 + Math.random() * 1.65,
     phase: Math.random() * Math.PI * 2,
     heading: Math.random() * Math.PI * 2,
-    moveSpeed: 0.0045 + Math.random() * 0.0095,
-    turnRate: 0.32 + Math.random() * 0.42,
-    flutter: 0.55 + Math.random() * 0.9,
+    moveSpeed: 0.014 + Math.random() * 0.022,
+    turnRate: 0.55 + Math.random() * 0.75,
+    flutter: 0.85 + Math.random() * 1.25,
     pulseSpeed: 0.8 + Math.random() * 0.75,
     warm: i % 7 === 0
   }));
@@ -258,8 +266,8 @@ if (year) year.textContent = new Date().getFullYear();
         p.y = Math.max(0.07, Math.min(0.90, p.y));
       }
 
-      const x = (p.x + Math.sin(t * p.flutter + p.phase) * 0.0032) * w;
-      const y = (p.y + Math.cos(t * (p.flutter * 0.83) + p.phase) * 0.0048) * h;
+      const x = (p.x + Math.sin(t * p.flutter + p.phase) * 0.0065) * w;
+      const y = (p.y + Math.cos(t * (p.flutter * 0.83) + p.phase) * 0.0085) * h;
       const pulse = .25 + .75 * (.5 + .5 * Math.sin(t * p.pulseSpeed * 2.2 + p.phase));
       const rad = p.r * dpr;
       const g = pctx.createRadialGradient(x, y, 0, x, y, rad * 8);
