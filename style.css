@@ -1272,7 +1272,7 @@ footer {
   html,
   body,
   body * {
-    cursor: url("assets/cursor/lumen-native.svg?v=moonlit-arrow-2") 4 4, default !important;
+    cursor: url("assets/cursor/lumen-native.svg?v=crystal-arrow-3") 4 4, default !important;
   }
 }
 
@@ -1375,4 +1375,32 @@ footer {
     transform: scale(1.04) rotate(7deg);
     opacity: .66;
   }
+}
+
+
+/* Full-crystal cursor aura: pale refraction rather than neon glow. */
+.lumen-cursor-aura {
+  background:
+    radial-gradient(circle at 46% 44%,
+      rgba(255, 255, 255, .18) 0 4%,
+      rgba(218, 242, 255, .12) 15%,
+      rgba(149, 208, 255, .07) 33%,
+      rgba(93, 164, 238, .025) 51%,
+      rgba(74, 144, 228, 0) 70%);
+  filter: blur(5px);
+  opacity: .58;
+}
+
+.lumen-cursor-aura::before {
+  border-color: rgba(226, 244, 255, .14);
+  box-shadow:
+    0 0 7px rgba(184, 224, 255, .08),
+    inset 0 0 5px rgba(255,255,255,.045);
+}
+
+.lumen-cursor-pulse {
+  border-color: rgba(221, 240, 255, .36);
+  box-shadow:
+    0 0 8px rgba(138, 195, 255, .16),
+    inset 0 0 6px rgba(245, 251, 255, .08);
 }
