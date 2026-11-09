@@ -278,7 +278,8 @@ if (year) year.textContent = new Date().getFullYear();
   let width = 1;
   let height = 1;
   let dpr = 1;
-  const trail = [];
+  let last = performance.now();
+  const petals = [];
 
   function resize() {
     width = Math.max(1, window.innerWidth);
@@ -294,53 +295,88 @@ if (year) year.textContent = new Date().getFullYear();
   resize();
   window.addEventListener('resize', resize, { passive: true });
 
-  window.addEventListener('pointermove', e => {
-    for (let i = 0; i < 2; i++) {
-      trail.push({
-        x: e.clientX + (Math.random() - .5) * 7,
-        y: e.clientY + (Math.random() - .5) * 7,
-        vx: (Math.random() - .5) * .30,
-        vy: -.18 - Math.random() * .30,
-        life: 1,
-        size: .9 + Math.random() * 1.9
-      });
-    }
+  function spawnPetal(x, y) {
+    const white = Math.random() < 0.48;
+    petals.push({
+      x: x + (Math.random() - .5) * 9,
+      y: y + (Math.random() - .5) * 6,
+      vx: (Math.random() - .5) * .55,
+      vy: .22 + Math.random() * .48,
+      size: 2.0 + Math.random() * 3.1,
+      rot: Math.random() * Math.PI * 2,
+      vr: (Math.random() - .5) * .065,
+      sway: .8 + Math.random() * 1.8,
+      phase: Math.random() * Math.PI * 2,
+      life: 1,
+      white
+    });
+  }
 
-    if (trail.length > 120) {
-      trail.splice(0, trail.length - 120);
+  window.addEventListener('pointermove', e => {
+    spawnPetal(e.clientX, e.clientY);
+    if (Math.random() < .34) spawnPetal(e.clientX, e.clientY);
+
+    if (petals.length > 96) {
+      petals.splice(0, petals.length - 96);
     }
   }, { passive: true });
 
-  function frame() {
-    ctx.clearRect(0, 0, width, height);
+  function drawPetal(p, alpha) {
     ctx.save();
-    ctx.globalCompositeOperation = 'screen';
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot);
+    ctx.scale(p.size * .60, p.size);
 
-    for (let i = trail.length - 1; i >= 0; i--) {
-      const p = trail[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= .022;
+    const grad = ctx.createLinearGradient(0, -1, 0, 1);
+    if (p.white) {
+      grad.addColorStop(0, 'rgba(247,252,255,' + (.94 * alpha) + ')');
+      grad.addColorStop(.55, 'rgba(215,239,255,' + (.82 * alpha) + ')');
+      grad.addColorStop(1, 'rgba(154,205,248,' + (.34 * alpha) + ')');
+      ctx.shadowColor = 'rgba(179,225,255,' + (.35 * alpha) + ')';
+    } else {
+      grad.addColorStop(0, 'rgba(218,240,255,' + (.92 * alpha) + ')');
+      grad.addColorStop(.55, 'rgba(127,190,245,' + (.78 * alpha) + ')');
+      grad.addColorStop(1, 'rgba(82,145,220,' + (.32 * alpha) + ')');
+      ctx.shadowColor = 'rgba(103,184,255,' + (.32 * alpha) + ')';
+    }
 
-      if (p.life <= 0) {
-        trail.splice(i, 1);
+    ctx.shadowBlur = 4.5;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(0, -1);
+    ctx.bezierCurveTo(.80, -.48, .82, .48, 0, 1);
+    ctx.bezierCurveTo(-.82, .48, -.80, -.48, 0, -1);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function frame(now) {
+    const dt = Math.min((now - last) / 16.67, 2.0);
+    last = now;
+
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i = petals.length - 1; i >= 0; i--) {
+      const p = petals[i];
+
+      p.phase += .035 * p.sway * dt;
+      p.vy += .006 * dt;
+      p.x += (p.vx + Math.sin(p.phase) * .24) * dt;
+      p.y += p.vy * dt;
+      p.rot += (p.vr + Math.sin(p.phase * .73) * .008) * dt;
+      p.life -= .0125 * dt;
+
+      if (p.life <= 0 || p.y > height + 24) {
+        petals.splice(i, 1);
         continue;
       }
 
-      const glow = p.size * 6.2;
-      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glow);
-      g.addColorStop(0, 'rgba(232,249,255,' + (.74 * p.life) + ')');
-      g.addColorStop(.28, 'rgba(130,210,255,' + (.34 * p.life) + ')');
-      g.addColorStop(.62, 'rgba(92,172,255,' + (.12 * p.life) + ')');
-      g.addColorStop(1, 'rgba(70,150,255,0)');
-
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, glow, 0, Math.PI * 2);
-      ctx.fill();
+      const alpha = Math.min(1, p.life * 1.5);
+      drawPetal(p, alpha);
     }
 
-    ctx.restore();
     requestAnimationFrame(frame);
   }
 
@@ -375,116 +411,93 @@ if (year) year.textContent = new Date().getFullYear();
 
     uniform vec2 u_resolution;
     uniform float u_time;
+    uniform sampler2D u_texture;
 
-    const float PI = 3.141592653589793;
+    vec2 coverUv(vec2 uv) {
+      float screenAspect = u_resolution.x / u_resolution.y;
+      float texAspect = 1.7777778;
+      vec2 p = uv;
 
-    float waterHeight(vec2 p, float t) {
-      // One clear disturbance source on the water surface.
-      // Perspective makes these circular world-space ripples appear elliptical on screen.
-      vec2 center = vec2(0.10, 3.10);
-      float r = length(p - center);
+      if (screenAspect > texAspect) {
+        float s = texAspect / screenAspect;
+        p.y = (p.y - .5) * s + .5;
+      } else {
+        float s = screenAspect / texAspect;
+        p.x = (p.x - .5) * s + .5;
+      }
 
-      // Main outward-propagating ripple train.
-      float mainRipple =
-        sin(r * 10.8 - t * 2.55) *
-        exp(-r * 0.16) *
-        0.132;
-
-      // A finer harmonic gives each ring a thin luminous crest instead of a soft blob.
-      float fineRipple =
-        sin(r * 21.6 - t * 5.10 + 0.55) *
-        exp(-r * 0.22) *
-        0.026;
-
-      // Very gentle background water motion so the surface is alive between rings.
-      vec2 d1 = normalize(vec2(1.0, 0.18));
-      vec2 d2 = normalize(vec2(-0.36, 1.0));
-      float ambient =
-        sin(dot(p, d1) * 2.45 + t * 0.42) * 0.020 +
-        sin(dot(p, d2) * 4.10 - t * 0.55 + 1.2) * 0.012;
-
-      return mainRipple + fineRipple + ambient;
+      return p;
     }
 
     void main() {
       vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      vec2 suv = vec2(uv.x, 1.0 - uv.y);
       float aspect = u_resolution.x / u_resolution.y;
 
-      // Perspective projection of an effectively endless water plane.
-      float y = clamp(uv.y, 0.02, 1.0);
-      float farScale = mix(8.6, 2.7, pow(y, 0.78));
-      vec2 p = vec2(
-        (uv.x - 0.5) * aspect * farScale,
-        mix(8.4, 0.55, pow(y, 0.72))
-      );
+      // One visible ripple source, slightly below center like the source wallpaper.
+      vec2 center = vec2(.53, .61);
+      vec2 delta = vec2((suv.x - center.x) * aspect, suv.y - center.y);
+      float r = length(delta);
+      vec2 dir = r > .0001 ? normalize(delta) : vec2(0.0);
 
-      float eps = 0.018;
-      float hx = waterHeight(p + vec2(eps, 0.0), u_time)
-               - waterHeight(p - vec2(eps, 0.0), u_time);
-      float hz = waterHeight(p + vec2(0.0, eps), u_time)
-               - waterHeight(p - vec2(0.0, eps), u_time);
+      float phase = r * 47.0 - u_time * 4.15;
+      float envelope = exp(-r * 1.75);
+      float ringWave = sin(phase) * envelope;
+      float fineWave = sin(phase * 1.95 + .55) * exp(-r * 2.5);
 
-      vec3 N = normalize(vec3(-hx * 7.2, 1.0, -hz * 7.2));
+      // Gentle ambient motion, much weaker than the central ripple.
+      vec2 ambient = vec2(
+        sin(suv.y * 19.0 + u_time * .48) + sin((suv.x + suv.y) * 13.0 - u_time * .34),
+        cos(suv.x * 17.0 - u_time * .42) + sin((suv.x - suv.y) * 11.0 + u_time * .29)
+      ) * .00085;
 
-      // Camera looking down the surface; moon is above/right and outside the viewport.
-      vec3 V = normalize(vec3((0.5 - uv.x) * 0.20, 1.15, 0.88));
-      vec3 L = normalize(vec3(0.88, 1.42, -0.62));
-      vec3 H = normalize(V + L);
+      vec2 rippleOffset = dir * (ringWave * .0072 + fineWave * .0018);
+      vec2 sampleUv = coverUv(suv + rippleOffset + ambient);
+      sampleUv = clamp(sampleUv, .001, .999);
 
-      float ndv = max(dot(N, V), 0.0);
-      float ndh = max(dot(N, H), 0.0);
+      vec3 base = texture2D(u_texture, sampleUv).rgb;
 
-      float fresnel = pow(1.0 - ndv, 4.0);
-      float broadSpec = pow(ndh, 26.0);
-      float sharpSpec = pow(ndh, 115.0);
+      // Shift the blurred wallpaper-derived palette toward its deep indigo water.
+      base = mix(base, vec3(.015, .035, .080), .31);
+      base *= vec3(.70, .80, .98) * .82;
 
-      // A diagonal moon-glitter path, widening toward the viewer.
-      float trailCenter = 0.79 - uv.y * 0.20;
-      float trailWidth = 0.055 + uv.y * 0.18;
-      float trail = exp(-pow((uv.x - trailCenter) / trailWidth, 2.0));
+      // Crest definition: thin silver-blue rings, not cartoon circles.
+      float crest = pow(max(0.0, cos(phase)), 10.0) * envelope;
+      float trough = pow(max(0.0, -cos(phase)), 5.0) * envelope;
+      base += vec3(.35, .64, 1.0) * crest * .12;
+      base -= vec3(.015, .030, .050) * trough * .32;
 
-      // Break the reflection into small moving shards on wave crests.
-      float shardA = 0.5 + 0.5 * sin(p.x * 21.0 + p.y * 7.0 + u_time * 2.25);
-      float shardB = 0.5 + 0.5 * sin(p.x * 11.0 - p.y * 15.0 - u_time * 1.72);
-      float shards = smoothstep(0.47, 0.96, shardA * 0.60 + shardB * 0.62);
+      // Moon reflection comes from outside the upper-right viewport.
+      float trailCenter = .83 - suv.y * .27;
+      float trailWidth = .045 + suv.y * .135;
+      float moonTrail = exp(-pow((suv.x - trailCenter) / trailWidth, 2.0));
 
-      float moonSpec = trail * (
-        broadSpec * 0.92 +
-        sharpSpec * (1.15 + shards * 1.85)
-      );
+      float glitter1 = .5 + .5 * sin(suv.x * 220.0 + suv.y * 84.0 + u_time * 2.8 + ringWave * 5.0);
+      float glitter2 = .5 + .5 * sin(suv.x * 119.0 - suv.y * 173.0 - u_time * 2.1);
+      float glitter = pow(max(0.0, glitter1 * .64 + glitter2 * .54 - .60), 5.0);
 
-      // Cool reflection from the night sky, stronger toward the horizon.
-      float horizon = pow(1.0 - uv.y, 2.2);
-      vec3 deep = vec3(0.010, 0.038, 0.061);
-      vec3 mid = vec3(0.018, 0.092, 0.132);
-      vec3 sky = vec3(0.095, 0.165, 0.235);
+      vec3 moon = vec3(.78, .88, 1.0);
+      base += moon * moonTrail * (.055 + glitter * .55);
+      base += moon * crest * moonTrail * .20;
 
-      vec3 color = mix(deep, mid, 0.30 + 0.45 * y);
-      color += sky * fresnel * (0.26 + horizon * 0.32);
+      // Sparse tiny blue-white water sparkles, like the wallpaper.
+      float speck =
+        pow(max(0.0,
+          sin((suv.x * 313.0 + suv.y * 157.0) + u_time * .23) *
+          sin((suv.x * 181.0 - suv.y * 271.0) - u_time * .19)
+        ), 14.0);
+      base += vec3(.62, .83, 1.0) * speck * .12;
 
-      // Fine wave-face brightness, kept subtle so the surface stays natural.
-      float slopeLight = clamp(N.y * 0.65 + N.x * 0.16 - N.z * 0.10, 0.0, 1.0);
-      color += vec3(0.035, 0.085, 0.115) * slopeLight * 0.38;
+      // Keep headings/body text readable even where the moon reflection passes.
+      float centerReadability = smoothstep(.95, .18, length((suv - vec2(.48,.52)) * vec2(.88,1.0)));
+      base *= 1.0 - centerReadability * .08;
 
-      vec3 moonColor = vec3(0.78, 0.88, 1.0);
-      color += moonColor * moonSpec * 0.72;
+      vec2 q = suv - .5;
+      float vignette = smoothstep(.84, .20, dot(q, q));
+      base *= .82 + .18 * vignette;
 
-      // Sparse pinprick sparkles inside the reflected path.
-      float micro = pow(max(0.0, sin(p.x * 31.0 + u_time * 3.0)
-                                  * sin(p.y * 23.0 - u_time * 2.3)), 8.0);
-      color += moonColor * trail * sharpSpec * micro * 1.10;
-
-      // Slight haze in the distance makes perspective feel less synthetic.
-      color = mix(color, vec3(0.055, 0.105, 0.155), horizon * 0.13);
-
-      // Mild vignette keeps text readable at the edges.
-      vec2 q = uv - 0.5;
-      float vignette = smoothstep(0.78, 0.25, dot(q, q));
-      color *= 0.86 + 0.14 * vignette;
-
-      // Simple display gamma.
-      color = pow(color, vec3(0.92));
-      gl_FragColor = vec4(color, 1.0);
+      base = pow(max(base, 0.0), vec3(.92));
+      gl_FragColor = vec4(base, 1.0);
     }
   `;
 
@@ -530,6 +543,36 @@ if (year) year.textContent = new Date().getFullYear();
 
   const resolution = gl.getUniformLocation(program, 'u_resolution');
   const time = gl.getUniformLocation(program, 'u_time');
+  const textureUniform = gl.getUniformLocation(program, 'u_texture');
+
+  const texture = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(
+    gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0,
+    gl.RGBA, gl.UNSIGNED_BYTE,
+    new Uint8Array([8, 18, 32, 255])
+  );
+  gl.uniform1i(textureUniform, 0);
+
+  let textureReady = false;
+  const image = new Image();
+  image.decoding = 'async';
+  image.onload = () => {
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(
+      gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
+      gl.UNSIGNED_BYTE, image
+    );
+    textureReady = true;
+  };
+  image.src = 'assets/background/water-texture.webp?v=1';
 
   let active = true;
   let lastRender = 0;
@@ -538,8 +581,6 @@ if (year) year.textContent = new Date().getFullYear();
   function resize() {
     const cssW = Math.max(1, window.innerWidth);
     const cssH = Math.max(1, window.innerHeight);
-
-    // Background detail does not need native 4K resolution.
     const maxW = 1800;
     const scale = Math.min(1, maxW / cssW, window.devicePixelRatio || 1);
     const w = Math.max(1, Math.round(cssW * scale));
@@ -558,15 +599,16 @@ if (year) year.textContent = new Date().getFullYear();
   if (cover) {
     new IntersectionObserver(entries => {
       const ratio = entries[0]?.intersectionRatio ?? 0;
-      active = ratio < 0.55;
+      active = ratio < .55;
     }, { threshold: [0, .25, .55, 1] }).observe(cover);
   }
 
   function frame(now) {
-    // ~45 fps is enough for water and significantly cheaper than 90/165 fps.
-    if (active && !document.hidden && now - lastRender >= 22) {
+    if (active && !document.hidden && textureReady && now - lastRender >= 22) {
       lastRender = now;
       gl.useProgram(program);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.uniform2f(resolution, canvas.width, canvas.height);
       gl.uniform1f(time, (now - started) / 1000);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
