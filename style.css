@@ -37,6 +37,7 @@ a { color: inherit; }
 }
 .wallpaper-fallback,
 .wallpaper-layer,
+.wallpaper-video,
 #wallpaper-canvas,
 #particle-canvas,
 .moon-glow {
@@ -67,9 +68,16 @@ a { color: inherit; }
   mix-blend-mode: screen;
   animation: moon-pulse 4.8s ease-in-out infinite alternate;
 }
-#wallpaper-canvas {
+.wallpaper-video {
   z-index: 1;
   display: block;
+  object-fit: cover;
+  object-position: center center;
+  pointer-events: none;
+}
+#wallpaper-canvas {
+  z-index: 1;
+  display: none;
   pointer-events: none;
 }
 #particle-canvas {
