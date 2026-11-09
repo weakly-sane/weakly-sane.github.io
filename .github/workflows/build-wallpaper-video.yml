@@ -187,8 +187,8 @@ jobs:
                   boat_y = (6.8 * PIXEL_SCALE) * math.sin(p)
                   boat_x = (0.85 * PIXEL_SCALE) * math.cos(p)
 
-                  # BODY: tiny coherent breathing, two cycles per loop.
-                  breath = math.sin(2.0*p)
+                  # BODY: tiny coherent breathing, one cycle per loop (half the previous speed).
+                  breath = math.sin(p)
                   sx = 0.00050 * breath
                   sy = 0.00280 * breath
                   lift = (-1.05 * PIXEL_SCALE) * breath
