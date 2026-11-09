@@ -1404,3 +1404,15 @@ footer {
     0 0 8px rgba(138, 195, 255, .16),
     inset 0 0 6px rgba(245, 251, 255, .08);
 }
+
+
+/* ===== Restore native system cursor ===== */
+html,
+body,
+body * {
+  cursor: revert !important;
+}
+
+.lumen-cursor {
+  display: none !important;
+}
