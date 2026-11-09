@@ -2,6 +2,37 @@ const year = document.getElementById('year');
 if (year) year.textContent = new Date().getFullYear();
 
 (() => {
+  const clock = document.getElementById('scene-clock');
+  const sceneDate = document.getElementById('scene-date');
+  const sceneDay = document.getElementById('scene-day');
+
+  function updateSceneTime() {
+    const now = new Date();
+    if (clock) {
+      clock.textContent = new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hourCycle: 'h23'
+      }).format(now);
+    }
+    if (sceneDate) {
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = new Intl.DateTimeFormat('en-GB', { month: 'short' })
+        .format(now).toUpperCase();
+      sceneDate.textContent = `${day} ${month} ${now.getFullYear()}`;
+    }
+    if (sceneDay) {
+      const weekday = new Intl.DateTimeFormat('en-GB', { weekday: 'long' })
+        .format(now).toUpperCase();
+      sceneDay.textContent = `| ${weekday.split('').join(' ')} |`;
+    }
+  }
+
+  updateSceneTime();
+  window.setInterval(updateSceneTime, 1000);
+})();
+
+(() => {
   const cover = document.querySelector('.wallpaper-cover');
   const particleCanvas = document.getElementById('particle-canvas');
   if (!cover || !particleCanvas) return;
@@ -56,13 +87,16 @@ if (year) year.textContent = new Date().getFullYear();
     touchStartY = null;
   }, { passive: true });
 
-  const fireflies = Array.from({ length: 32 }, (_, i) => ({
-    x: 0.04 + Math.random() * 0.84,
-    y: 0.12 + Math.random() * 0.70,
-    r: 0.7 + Math.random() * 1.7,
-    speed: 0.35 + Math.random() * 0.7,
+  const fireflies = Array.from({ length: 38 }, (_, i) => ({
+    x: 0.04 + Math.random() * 0.88,
+    y: 0.10 + Math.random() * 0.74,
+    r: 0.75 + Math.random() * 1.65,
     phase: Math.random() * Math.PI * 2,
-    drift: (Math.random() - 0.5) * 0.026,
+    heading: Math.random() * Math.PI * 2,
+    moveSpeed: 0.0045 + Math.random() * 0.0095,
+    turnRate: 0.32 + Math.random() * 0.42,
+    flutter: 0.55 + Math.random() * 0.9,
+    pulseSpeed: 0.8 + Math.random() * 0.75,
     warm: i % 7 === 0
   }));
 
@@ -97,10 +131,22 @@ if (year) year.textContent = new Date().getFullYear();
     pctx.globalCompositeOperation = 'screen';
 
     for (const p of fireflies) {
-      const q = t * p.speed + p.phase;
-      const x = (p.x + Math.sin(q * .7) * p.drift) * w;
-      const y = (p.y + Math.sin(q * .83) * .012) * h;
-      const pulse = .25 + .75 * (.5 + .5 * Math.sin(q * 2.2));
+      p.heading += Math.sin(t * 0.34 + p.phase) * p.turnRate * particleDt;
+      p.x += Math.cos(p.heading) * p.moveSpeed * particleDt;
+      p.y += Math.sin(p.heading) * p.moveSpeed * 0.62 * particleDt;
+
+      if (p.x < 0.025 || p.x > 0.975) {
+        p.heading = Math.PI - p.heading;
+        p.x = Math.max(0.025, Math.min(0.975, p.x));
+      }
+      if (p.y < 0.07 || p.y > 0.90) {
+        p.heading = -p.heading;
+        p.y = Math.max(0.07, Math.min(0.90, p.y));
+      }
+
+      const x = (p.x + Math.sin(t * p.flutter + p.phase) * 0.0032) * w;
+      const y = (p.y + Math.cos(t * (p.flutter * 0.83) + p.phase) * 0.0048) * h;
+      const pulse = .25 + .75 * (.5 + .5 * Math.sin(t * p.pulseSpeed * 2.2 + p.phase));
       const rad = p.r * dpr;
       const g = pctx.createRadialGradient(x, y, 0, x, y, rad * 8);
 
@@ -145,8 +191,12 @@ if (year) year.textContent = new Date().getFullYear();
   }
 
   const start = performance.now();
+  let lastFrame = start;
+  let particleDt = 0;
 
   function frame(now) {
+    particleDt = Math.min((now - lastFrame) / 1000, 0.05);
+    lastFrame = now;
     if (visible) drawParticles((now - start) / 1000);
     requestAnimationFrame(frame);
   }
