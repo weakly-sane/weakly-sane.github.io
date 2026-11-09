@@ -57,18 +57,41 @@ a { color: inherit; }
   animation: scene-breathe 11s ease-in-out infinite alternate;
 }
 .motion-hair {
-  -webkit-mask-image: radial-gradient(ellipse 20% 28% at 65% 39%, #000 18%, rgba(0,0,0,.88) 44%, transparent 73%);
-  mask-image: radial-gradient(ellipse 20% 28% at 65% 39%, #000 18%, rgba(0,0,0,.88) 44%, transparent 73%);
-  animation: hair-sway 5.4s ease-in-out infinite alternate;
+  -webkit-mask-image: url("assets/wallpaper/body-mask.png?v=1");
+  mask-image: url("assets/wallpaper/body-mask.png?v=1");
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transform-origin: 64% 45%;
+  animation: body-breathe 4.9s ease-in-out infinite;
 }
 .motion-ribbon {
-  -webkit-mask-image: radial-gradient(ellipse 32% 34% at 72% 59%, #000 13%, rgba(0,0,0,.9) 43%, transparent 78%);
-  mask-image: radial-gradient(ellipse 32% 34% at 72% 59%, #000 13%, rgba(0,0,0,.9) 43%, transparent 78%);
-  animation: ribbon-sway 4.3s ease-in-out infinite alternate;
+  -webkit-mask-image: url("assets/wallpaper/boat-mask.png?v=1");
+  mask-image: url("assets/wallpaper/boat-mask.png?v=1");
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  transform-origin: 66% 59%;
+  animation: boat-bob 6.2s ease-in-out infinite;
 }
 .motion-water {
-  /* Water motion is handled by WebGL, where the character can be excluded precisely. */
-  display: none;
+  display: block;
+  -webkit-mask-image: url("assets/wallpaper/water-mask.png?v=1");
+  mask-image: url("assets/wallpaper/water-mask.png?v=1");
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter: url("#water-ripple-filter");
+  animation: water-surface-drift 7.4s ease-in-out infinite alternate;
 }
 .moon-glow {
   pointer-events: none;
@@ -80,7 +103,7 @@ a { color: inherit; }
 }
 #wallpaper-canvas {
   z-index: 1;
-  display: block;
+  display: none;
   pointer-events: none;
 }
 #particle-canvas {
@@ -157,17 +180,29 @@ a { color: inherit; }
   from { transform: scale(1.002) translate3d(-.05%, 0, 0); }
   to { transform: scale(1.008) translate3d(.05%, -.08%, 0); }
 }
-@keyframes hair-sway {
-  from { transform: translate3d(-1.5px, .4px, 0) rotate(-.035deg) scale(1.004); }
-  to { transform: translate3d(1.8px, -1px, 0) rotate(.055deg) scale(1.006); }
+@keyframes body-breathe {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
+  }
+  50% {
+    transform: translate3d(0, -1.8px, 0) scaleX(1.0015) scaleY(1.0045);
+  }
 }
-@keyframes ribbon-sway {
-  from { transform: translate3d(-2px, 1px, 0) rotate(-.06deg) scale(1.004); }
-  to { transform: translate3d(3px, -1px, 0) rotate(.08deg) scale(1.007); }
+@keyframes boat-bob {
+  0%, 100% {
+    transform: translate3d(-0.5px, 1.5px, 0) rotate(-0.035deg);
+  }
+  50% {
+    transform: translate3d(0.8px, -3.2px, 0) rotate(0.045deg);
+  }
 }
-@keyframes water-drift {
-  from { transform: translate3d(-1px, .7px, 0) scale(1.003); filter: brightness(1); }
-  to { transform: translate3d(2px, -1px, 0) scale(1.006); filter: brightness(1.035); }
+@keyframes water-surface-drift {
+  0% {
+    transform: translate3d(-1.5px, 0.5px, 0) scale(1.002);
+  }
+  100% {
+    transform: translate3d(1.8px, -0.8px, 0) scale(1.004);
+  }
 }
 @keyframes moon-pulse {
   from { opacity: .62; transform: scale(1); }
@@ -438,4 +473,11 @@ footer { padding: 28px 0 36px; color: var(--muted); font-size: 12px; }
     --accent: #9ab8ea;
     --accent-soft: #18243a;
   }
+}
+
+.wallpaper-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
