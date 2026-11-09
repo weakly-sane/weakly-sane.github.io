@@ -1262,3 +1262,37 @@ footer {
     animation: none;
   }
 }
+
+
+/* ===== Native-feel cursor override =====
+   The visible arrow is now a real browser cursor, so mouse sensitivity,
+   acceleration and click feel remain identical to the operating system.
+   The DOM cursor layer only renders aura/click effects. */
+@media (pointer: fine) and (hover: hover) {
+  html,
+  body,
+  body * {
+    cursor: url("assets/cursor/lumen-native.svg") 3 3, default !important;
+  }
+}
+
+.lumen-cursor-arrow {
+  display: none !important;
+}
+
+.lumen-cursor {
+  width: 44px;
+  height: 44px;
+}
+
+.lumen-cursor-aura {
+  left: -17px;
+  top: -17px;
+  width: 44px;
+  height: 44px;
+}
+
+.lumen-cursor-pulse {
+  left: -6px;
+  top: -6px;
+}
