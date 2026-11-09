@@ -78,6 +78,38 @@ if (year) year.textContent = new Date().getFullYear();
     pointerInside = false;
   });
 
+  const aboutSection = document.getElementById('about');
+  let coverSnapLocked = false;
+  let touchStartY = null;
+
+  function enterAbout() {
+    if (!aboutSection || coverSnapLocked) return;
+    coverSnapLocked = true;
+    aboutSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.setTimeout(() => { coverSnapLocked = false; }, 950);
+  }
+
+  cover.addEventListener('wheel', event => {
+    const coverHeight = cover.getBoundingClientRect().height;
+    if (event.deltaY > 3 && window.scrollY < coverHeight * 0.78) {
+      event.preventDefault();
+      enterAbout();
+    }
+  }, { passive: false });
+
+  cover.addEventListener('touchstart', event => {
+    touchStartY = event.touches[0]?.clientY ?? null;
+  }, { passive: true });
+
+  cover.addEventListener('touchend', event => {
+    if (touchStartY == null) return;
+    const endY = event.changedTouches[0]?.clientY ?? touchStartY;
+    if (touchStartY - endY > 28 && window.scrollY < cover.clientHeight * 0.78) {
+      enterAbout();
+    }
+    touchStartY = null;
+  }, { passive: true });
+
   function drawParticles(time) {
     if (!particleCtx) return;
     const w = particleCanvas.width;
@@ -130,8 +162,19 @@ if (year) year.textContent = new Date().getFullYear();
     particleCtx.restore();
   }
 
-  // WebGL is the high-fidelity layer. If Steam blocks canvas access,
-  // the animated CSS layers above remain visible as the fallback.
+  // The scene image is cross-origin on Steam, so localized motion is
+  // rendered with CSS/SVG masks instead of relying on WebGL texture access.
+  canvas.style.display = 'none';
+  {
+    const start = performance.now();
+    const cssFrame = now => {
+      if (visible) drawParticles((now - start) / 1000);
+      requestAnimationFrame(cssFrame);
+    };
+    requestAnimationFrame(cssFrame);
+  }
+  return;
+
   const gl = canvas.getContext('webgl', {
     alpha: true,
     antialias: false,
