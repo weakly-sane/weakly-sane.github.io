@@ -47,8 +47,8 @@ jobs:
           SCALE_X = W / BASE_W
           SCALE_Y = H / BASE_H
           PIXEL_SCALE = (SCALE_X + SCALE_Y) * 0.5
-          FPS = 165
-          SECONDS = 8
+          FPS = 90
+          SECONDS = 4
           N = FPS * SECONDS
           src = cv2.resize(src, (W, H), interpolation=cv2.INTER_LANCZOS4)
 
