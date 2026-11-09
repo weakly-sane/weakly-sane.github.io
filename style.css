@@ -505,7 +505,7 @@ footer { padding: 28px 0 36px; color: var(--muted); font-size: 12px; }
 
 @media (max-width: 520px) {
   .container { width: min(calc(100% - 28px), var(--max)); }
-  nav a:nth-child(5) { display: none; }
+  nav a:nth-child(5), nav a:nth-child(6) { display: none; }
   .cover-copy p { max-width: 290px; }
 }
 
@@ -909,4 +909,198 @@ footer {
     rgba(4, 13, 24, .08)
   );
   pointer-events: none;
+}
+
+
+/* ===== Friends / link exchange ===== */
+.friends-heading {
+  max-width: 780px;
+}
+
+.friends-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+  gap: 18px;
+}
+
+.friend-card {
+  position: relative;
+  min-height: 210px;
+  padding: 28px;
+  border: 1px solid rgba(180, 203, 234, .15);
+  border-radius: 20px;
+  background:
+    linear-gradient(145deg, rgba(21, 40, 64, .66), rgba(8, 20, 34, .54));
+  box-shadow:
+    0 18px 44px rgba(0, 7, 18, .20),
+    inset 0 1px 0 rgba(255, 255, 255, .035);
+  backdrop-filter: blur(14px) saturate(115%);
+  overflow: hidden;
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    transform .28s ease,
+    border-color .28s ease,
+    background .28s ease,
+    box-shadow .28s ease;
+}
+
+.friend-card::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  right: -74px;
+  top: -88px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(145, 194, 255, .13), rgba(145, 194, 255, 0) 68%);
+  pointer-events: none;
+}
+
+.friend-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(174, 207, 255, .30);
+  background:
+    linear-gradient(145deg, rgba(27, 50, 78, .72), rgba(10, 25, 42, .61));
+  box-shadow:
+    0 24px 56px rgba(0, 7, 18, .29),
+    0 0 34px rgba(99, 156, 225, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+
+.friend-card-self {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 26px;
+  align-items: center;
+}
+
+.friend-avatar-wrap {
+  width: 108px;
+  height: 108px;
+  padding: 3px;
+  border-radius: 50%;
+  background:
+    linear-gradient(135deg, rgba(217, 238, 255, .82), rgba(100, 161, 231, .30));
+  box-shadow:
+    0 10px 30px rgba(0, 7, 18, .25),
+    0 0 30px rgba(130, 190, 255, .09);
+}
+
+.friend-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(6, 18, 31, .86);
+}
+
+.friend-card-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.friend-kicker {
+  margin-bottom: 8px;
+  color: #9fc2ff;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.friend-card h3 {
+  margin-bottom: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.friend-card p {
+  margin-bottom: 14px;
+  color: var(--muted);
+  max-width: 560px;
+}
+
+.friend-card-self a,
+.friend-cta {
+  color: #d8e8ff;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.friend-card-self a:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.friend-card-invite {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.friend-invite-mark {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(185, 211, 246, .24);
+  border-radius: 50%;
+  background: rgba(134, 185, 242, .07);
+  color: rgba(225, 240, 255, .88);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 33px;
+  line-height: 1;
+  transition: transform .28s ease, background .28s ease;
+}
+
+.friend-card-invite:hover .friend-invite-mark {
+  transform: rotate(90deg);
+  background: rgba(134, 185, 242, .13);
+}
+
+.friend-cta {
+  display: inline-block;
+  margin-top: 2px;
+}
+
+@media (max-width: 800px) {
+  .friends-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .friend-card {
+    padding: 22px;
+  }
+
+  .friend-card-self {
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .friend-avatar-wrap {
+    width: 76px;
+    height: 76px;
+  }
+
+  .friend-card-invite {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .friend-invite-mark {
+    width: 44px;
+    height: 44px;
+    font-size: 27px;
+  }
+
+  .friend-card h3 {
+    font-size: 25px;
+  }
 }
