@@ -151,9 +151,9 @@ jobs:
 
                   # BODY: tiny coherent breathing, two cycles per loop.
                   breath = math.sin(2.0*p)
-                  sx = 0.00014 * breath
-                  sy = 0.00040 * breath
-                  lift = -0.18 * breath
+                  sx = 0.00030 * breath
+                  sy = 0.00105 * breath
+                  lift = -0.42 * breath
 
                   dx = water*wx + boat*boat_x
                   dy = water*wy + boat*boat_y
