@@ -161,15 +161,13 @@ if (year) year.textContent = new Date().getFullYear();
   const fragmentSource = `
     precision highp float;
     uniform sampler2D u_image;
+    uniform sampler2D u_bodyMask;
+    uniform sampler2D u_boatMask;
+    uniform sampler2D u_waterMask;
     uniform vec2 u_resolution;
     uniform vec2 u_mouse;
     uniform float u_time;
     const float IMAGE_ASPECT = 1.7777777778;
-
-    float ellipseMask(vec2 uv, vec2 center, vec2 radius) {
-      vec2 q = (uv - center) / radius;
-      return exp(-dot(q, q) * 2.8);
-    }
 
     vec2 coverUV(vec2 uv) {
       float screenAspect = u_resolution.x / u_resolution.y;
@@ -199,49 +197,72 @@ if (year) year.textContent = new Date().getFullYear();
     void main() {
       vec2 screenUV = gl_FragCoord.xy / u_resolution.xy;
       screenUV.y = 1.0 - screenUV.y;
-      vec2 uv = coverUV(screenUV);
+      vec2 baseUV = coverUV(screenUV);
 
+      float bodyMask = texture2D(u_bodyMask, baseUV).r;
+      float boatMask = texture2D(u_boatMask, baseUV).r;
+      float waterMask = texture2D(u_waterMask, baseUV).r;
+
+      bodyMask = smoothstep(0.05, 0.88, bodyMask);
+      boatMask = smoothstep(0.04, 0.86, boatMask);
+      waterMask = smoothstep(0.06, 0.82, waterMask);
+
+      vec2 uv = baseUV;
+
+      // Very light whole-scene mouse parallax.
       vec2 mouse = (u_mouse - .5) * vec2(1.0, -1.0);
-      uv += mouse * .0045;
+      uv += mouse * .0022;
 
-      float hair = ellipseMask(uv, vec2(.65, .37), vec2(.14, .22));
-      float ribbons = max(
-        ellipseMask(uv, vec2(.72, .57), vec2(.25, .27)),
-        ellipseMask(uv, vec2(.55, .48), vec2(.17, .20))
+      // Boat: slow vertical bob with an almost imperceptible horizontal rock.
+      // The original Wallpaper Engine boat effect uses a foliage-sway mask;
+      // keep the amplitude similarly small (roughly 1–2 px at 1080p).
+      float boatPhase = u_time * 0.82;
+      vec2 boatDisp = vec2(
+        sin(boatPhase * .63 + 1.1) * .00016,
+        sin(boatPhase) * .00078
       );
-      float water = smoothstep(.62, .82, uv.y);
+      uv += boatDisp * boatMask;
 
-      // Keep all water displacement off the character.
-      // The exclusion uses two overlapping soft ellipses that cover the torso,
-      // skirt/legs and the lower-right foreground character silhouette.
-      float characterBody = ellipseMask(uv, vec2(.64, .53), vec2(.27, .39));
-      float characterLower = ellipseMask(uv, vec2(.61, .78), vec2(.24, .25));
-      float characterMask = max(characterBody, characterLower);
-      water *= 1.0 - smoothstep(.08, .48, characterMask);
+      // Character: independent, slower breathing motion.
+      // Only the original body mask is affected; this is not a water ripple.
+      float breath = sin(u_time * 1.18 + .13);
+      vec2 bodyCenter = vec2(.61, .48);
+      vec2 radial = baseUV - bodyCenter;
+      vec2 bodyDisp =
+        vec2(radial.x * .00042, -.00062) * breath +
+        vec2(0.0, cos(u_time * .59) * .00012);
+      uv += bodyDisp * bodyMask;
 
-      vec2 disp = vec2(0.0);
-      disp.x += hair * sin(u_time * 2.15 + uv.y * 43.0) * .00145;
-      disp.y += hair * cos(u_time * 1.8 + uv.x * 27.0) * .00055;
+      // Water: local surface ripple using the original water mask.
+      // Two low-amplitude wave fields move at different speeds so the water
+      // remains alive without bending the character or the boat.
+      float w1 = sin(baseUV.x * 58.0 + baseUV.y * 17.0 + u_time * .92);
+      float w2 = sin(baseUV.x * 31.0 - baseUV.y * 43.0 - u_time * .67 + 1.7);
+      float w3 = sin(baseUV.y * 86.0 + u_time * .46);
+      vec2 waterDisp = vec2(
+        w1 * .00048 + w2 * .00025,
+        w2 * .00020 + w3 * .00032
+      );
+      uv += waterDisp * waterMask;
 
-      disp.x += ribbons * sin(u_time * 3.7 + uv.x * 24.0 + uv.y * 19.0) * .00185;
-      disp.y += ribbons * cos(u_time * 3.1 + uv.x * 22.0) * .00078;
-
-      // Water and ripple displacement disabled.
-      // Keep the image geometry stable; motion now comes from subtle
-      // non-water layers, lighting pulses and particles only.
-      uv += disp * 0.0;
       uv = clamp(uv, vec2(.001), vec2(.999));
       vec3 col = texture2D(u_image, uv).rgb;
 
-      float lantern = ellipseMask(uv, vec2(.18, .19), vec2(.20, .20));
-      float waterGlow = ellipseMask(uv, vec2(.43, .80), vec2(.22, .18));
-      float pulseA = .5 + .5 * sin(u_time * 1.18 + 1.55);
-      float pulseB = .5 + .5 * sin(u_time * 1.72 + 3.0);
-      col *= 1.0 + lantern * pulseA * .045;
-      col += vec3(.12, .22, .42) * waterGlow * pulseB * .045;
+      // Original scene-like light breathing.
+      float pulseNear = .5 + .5 * sin(u_time * 1.19 + 1.55);
+      float pulseFar = .5 + .5 * sin(u_time * 1.09 + 2.15);
+      float pulseLamp = .5 + .5 * sin(u_time * 1.8 + 3.0);
 
-      float shimmer = noise(vec2(uv.x * 125.0 + u_time * .25, uv.y * 48.0 - u_time * .19));
-      col += vec3(.10, .18, .31) * shimmer * water * .025;
+      float lightLeft = exp(-dot((baseUV - vec2(.17,.19))/vec2(.18,.20),
+                                (baseUV - vec2(.17,.19))/vec2(.18,.20)) * 2.2);
+      float lightWater = exp(-dot((baseUV - vec2(.42,.81))/vec2(.24,.16),
+                                 (baseUV - vec2(.42,.81))/vec2(.24,.16)) * 2.4);
+      col *= 1.0 + lightLeft * pulseLamp * .035;
+      col += vec3(.08,.15,.28) * lightWater * (pulseNear*.6 + pulseFar*.4) * .045;
+
+      float shimmer = noise(vec2(baseUV.x * 118.0 + u_time * .18,
+                                 baseUV.y * 52.0 - u_time * .13));
+      col += vec3(.06,.12,.22) * shimmer * waterMask * .020;
 
       gl_FragColor = vec4(col, 1.0);
     }
@@ -292,15 +313,18 @@ if (year) year.textContent = new Date().getFullYear();
   const uMouse = gl.getUniformLocation(program, 'u_mouse');
   const uTime = gl.getUniformLocation(program, 'u_time');
   const uImage = gl.getUniformLocation(program, 'u_image');
+  const uBodyMask = gl.getUniformLocation(program, 'u_bodyMask');
+  const uBoatMask = gl.getUniformLocation(program, 'u_boatMask');
+  const uWaterMask = gl.getUniformLocation(program, 'u_waterMask');
 
-  function loadTexture() {
+  function loadTextureInto(url, unit, uniformLocation, crossOrigin = false) {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
+      if (crossOrigin) img.crossOrigin = 'anonymous';
       img.onload = () => {
         try {
           const texture = gl.createTexture();
-          gl.activeTexture(gl.TEXTURE0);
+          gl.activeTexture(gl.TEXTURE0 + unit);
           gl.bindTexture(gl.TEXTURE_2D, texture);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -308,18 +332,27 @@ if (year) year.textContent = new Date().getFullYear();
           gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
           gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-          gl.uniform1i(uImage, 0);
-          resolve();
+          gl.uniform1i(uniformLocation, unit);
+          resolve(texture);
         } catch (error) {
           reject(error);
         }
       };
       img.onerror = reject;
-      img.src = IMAGE_URL;
+      img.src = url;
     });
   }
 
-  loadTexture().then(() => {
+  function loadTextures() {
+    return Promise.all([
+      loadTextureInto(IMAGE_URL, 0, uImage, true),
+      loadTextureInto('assets/wallpaper/body-mask.png?v=1', 1, uBodyMask),
+      loadTextureInto('assets/wallpaper/boat-mask.png?v=1', 2, uBoatMask),
+      loadTextureInto('assets/wallpaper/water-mask.png?v=1', 3, uWaterMask)
+    ]);
+  }
+
+  loadTextures().then(() => {
     const start = performance.now();
     const frame = now => {
       if (visible) {
