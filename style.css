@@ -1416,3 +1416,32 @@ body * {
 .lumen-cursor {
   display: none !important;
 }
+
+
+/* ===== Native cursor cleanup: override legacy custom-cursor selectors ===== */
+body .card,
+body .research-note,
+body .research-project,
+body .friend-card-self {
+  cursor: default !important;
+}
+
+body a,
+body button,
+body [role="button"],
+body .inline-card,
+body .contact-link,
+body .friend-card-person,
+body .friend-card-invite {
+  cursor: pointer !important;
+}
+
+body input,
+body textarea {
+  cursor: text !important;
+}
+
+body select,
+body summary {
+  cursor: default !important;
+}
