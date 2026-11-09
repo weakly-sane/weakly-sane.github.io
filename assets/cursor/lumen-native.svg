@@ -1,20 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
   <defs>
-    <linearGradient id="f" x1="3" y1="2" x2="22" y2="37" gradientUnits="userSpaceOnUse">
+    <linearGradient id="metal" x1="4" y1="3" x2="39" y2="40" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset=".38" stop-color="#EEF8FF"/>
-      <stop offset=".72" stop-color="#CBE7FF"/>
-      <stop offset="1" stop-color="#86C1FF"/>
+      <stop offset=".30" stop-color="#EEF8FF"/>
+      <stop offset=".62" stop-color="#C8E5FF"/>
+      <stop offset="1" stop-color="#7FB8F5"/>
     </linearGradient>
-    <linearGradient id="s" x1="3" y1="2" x2="22" y2="37" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#75B8FF"/>
+    <linearGradient id="shaft" x1="10" y1="10" x2="42" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F8FCFF"/>
+      <stop offset=".52" stop-color="#CFE8FF"/>
+      <stop offset="1" stop-color="#91C5FF"/>
     </linearGradient>
-    <filter id="g" x="-80%" y="-80%" width="260%" height="260%">
-      <feGaussianBlur stdDeviation="1.15"/>
+    <linearGradient id="feather" x1="31" y1="28" x2="45" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F2FAFF"/>
+      <stop offset=".55" stop-color="#BCDFFF"/>
+      <stop offset="1" stop-color="#6AAEFF"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="1.6"/>
     </filter>
   </defs>
-  <path d="M3 2.5L25.2 23.8L17.1 25.4L21.3 36.4L17.5 37.8L13.3 26.7L6.5 32.3L3 2.5Z" fill="#8FC8FF" opacity=".42" filter="url(#g)"/>
-  <path d="M3 2.5L25.2 23.8L17.1 25.4L21.3 36.4L17.5 37.8L13.3 26.7L6.5 32.3L3 2.5Z" fill="url(#f)" stroke="url(#s)" stroke-width=".95" stroke-linejoin="round"/>
-  <path d="M4.8 5.7L21.9 22.0L15.2 23.4" stroke="#FFFFFF" stroke-opacity=".74" stroke-width=".8" stroke-linecap="round"/>
+
+  <!-- outer ice-blue glow -->
+  <g opacity=".58" filter="url(#glow)">
+    <path d="M3.2 3.2L12.8 6.4L7.1 12.1L3.2 3.2Z" fill="#A9D7FF"/>
+    <path d="M9.3 9.3L39.9 39.9" stroke="#83BFFF" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M34.8 30.3L45.1 34.1L39.0 40.2L34.8 30.3Z" fill="#79B7FF"/>
+    <path d="M30.1 35.0L40.0 39.1L33.9 45.2L30.1 35.0Z" fill="#79B7FF"/>
+  </g>
+
+  <!-- metal arrowhead -->
+  <path d="M2.6 2.6L14.5 6.4L7.0 13.9L2.6 2.6Z"
+        fill="url(#metal)" stroke="#FFFFFF" stroke-opacity=".92" stroke-width=".9" stroke-linejoin="round"/>
+  <path d="M4.2 4.0L10.6 6.1L6.8 9.9" stroke="#FFFFFF" stroke-opacity=".70" stroke-width=".8" stroke-linecap="round"/>
+
+  <!-- long shaft -->
+  <path d="M9.4 9.4L40.8 40.8"
+        stroke="#91C9FF" stroke-opacity=".38" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M9.4 9.4L40.8 40.8"
+        stroke="url(#shaft)" stroke-width="1.55" stroke-linecap="round"/>
+  <path d="M10.3 10.3L38.8 38.8"
+        stroke="#FFFFFF" stroke-opacity=".58" stroke-width=".55" stroke-linecap="round"/>
+
+  <!-- rear nock -->
+  <path d="M39.0 39.0L44.1 44.1" stroke="#D9EEFF" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M42.6 42.6L45.2 40.0" stroke="#8EC6FF" stroke-width=".9" stroke-linecap="round"/>
+
+  <!-- fletching: two visible feathers around the shaft -->
+  <path d="M33.0 29.0L44.7 33.5L38.4 39.8L33.0 29.0Z"
+        fill="url(#feather)" fill-opacity=".92"
+        stroke="#EAF7FF" stroke-opacity=".72" stroke-width=".65" stroke-linejoin="round"/>
+  <path d="M29.0 33.0L39.7 38.5L33.4 44.8L29.0 33.0Z"
+        fill="url(#feather)" fill-opacity=".78"
+        stroke="#DDEFFF" stroke-opacity=".62" stroke-width=".65" stroke-linejoin="round"/>
+
+  <!-- feather ribs -->
+  <path d="M35.0 32.2L40.6 34.7" stroke="#FFFFFF" stroke-opacity=".42" stroke-width=".55" stroke-linecap="round"/>
+  <path d="M32.1 35.3L34.8 40.7" stroke="#FFFFFF" stroke-opacity=".34" stroke-width=".55" stroke-linecap="round"/>
 </svg>
