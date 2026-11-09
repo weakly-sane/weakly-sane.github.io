@@ -22,6 +22,8 @@ jobs:
 
       - name: Install renderer
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           python -m pip install --upgrade pip
           pip install numpy opencv-python-headless
 
