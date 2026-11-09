@@ -596,7 +596,6 @@ if (year) year.textContent = new Date().getFullYear();
       base = pow(max(base, 0.0), vec3(.92));
       gl_FragColor = vec4(base, 1.0);
     }
-  `
   `;
 
   function compile(type, source) {
