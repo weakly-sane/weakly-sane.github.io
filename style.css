@@ -185,7 +185,7 @@ a { color: inherit; }
     transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
   }
   50% {
-    transform: translate3d(0, -1.8px, 0) scaleX(1.0015) scaleY(1.0045);
+    transform: translate3d(0, -0.45px, 0) scaleX(1.0003) scaleY(1.0011);
   }
 }
 @keyframes boat-bob {
@@ -198,10 +198,10 @@ a { color: inherit; }
 }
 @keyframes water-surface-drift {
   0% {
-    transform: translate3d(-1.5px, 0.5px, 0) scale(1.002);
+    transform: translate3d(-3.2px, 1.2px, 0) scale(1.004);
   }
   100% {
-    transform: translate3d(1.8px, -0.8px, 0) scale(1.004);
+    transform: translate3d(3.8px, -1.8px, 0) scale(1.009);
   }
 }
 @keyframes moon-pulse {
