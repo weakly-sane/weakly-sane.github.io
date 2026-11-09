@@ -1272,7 +1272,7 @@ footer {
   html,
   body,
   body * {
-    cursor: url("assets/cursor/lumen-native.svg") 3 3, default !important;
+    cursor: url("assets/cursor/lumen-native.svg?v=real-arrow-1") 3 3, default !important;
   }
 }
 
