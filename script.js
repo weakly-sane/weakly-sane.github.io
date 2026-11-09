@@ -16,7 +16,7 @@ if (year) year.textContent = new Date().getFullYear();
       }).format(now);
     }
     if (sceneDate) {
-      const day = String(now.getDate()).padStart(2, '0');
+      const day = String(now.getDate());
       const month = new Intl.DateTimeFormat('en-GB', { month: 'short' })
         .format(now).toUpperCase();
       sceneDate.textContent = `${day} ${month} ${now.getFullYear()}`;
