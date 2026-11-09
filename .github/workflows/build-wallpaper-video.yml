@@ -115,7 +115,7 @@ jobs:
           cx = float((xx * body).sum() / body_mass)
           cy = float((yy * body).sum() / body_mass)
 
-          out = root / 'iuno-loop.mp4'
+          out = root / 'iuno-loop-fixed.mp4'
           cmd = [
               'ffmpeg','-y',
               '-f','rawvideo','-vcodec','rawvideo',
@@ -151,9 +151,9 @@ jobs:
 
                   # BODY: tiny coherent breathing, two cycles per loop.
                   breath = math.sin(2.0*p)
-                  sx = 0.00030 * breath
-                  sy = 0.00105 * breath
-                  lift = -0.42 * breath
+                  sx = 0.00050 * breath
+                  sy = 0.00280 * breath
+                  lift = -1.05 * breath
 
                   dx = water*wx + boat*boat_x
                   dy = water*wy + boat*boat_y
@@ -192,7 +192,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add assets/wallpaper/iuno-loop.mp4
+          git add assets/wallpaper/iuno-loop-fixed.mp4
           git diff --cached --quiet && exit 0
           git commit -m 'Build animated wallpaper loop'
           git pull --rebase origin main
