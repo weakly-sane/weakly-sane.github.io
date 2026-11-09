@@ -7,14 +7,14 @@
   <meta name="color-scheme" content="light dark">
   <title>Yibin Shen | Mathematics</title>
   <link rel="preconnect" href="https://images.steamusercontent.com">
-  <link rel="stylesheet" href="style.css?v=20261109-7">
+  <link rel="stylesheet" href="style.css?v=20261109-8">
 
   <style>
     .wallpaper-cover{position:relative;width:100%;height:100svh;min-height:560px;overflow:hidden;isolation:isolate;background:#101521;color:#fff}
     .wallpaper-fallback,.wallpaper-layer,#wallpaper-canvas,#particle-canvas,.moon-glow{position:absolute;inset:0;width:100%;height:100%}
     .wallpaper-fallback{z-index:0;overflow:hidden}
-    .wallpaper-layer{background-image:url("https://images.steamusercontent.com/ugc/11997909639098621526/8DC7F56419FFAA39ADE80567B878B94A3C2D0E54/?ima=fit&imcolor=%23000000&imh=2160&impolicy=Letterbox&imw=3840&letterbox=true");background-size:cover;background-position:center;background-repeat:no-repeat}
-    .base-layer{animation:scene-breathe 11s ease-in-out infinite alternate}
+    .wallpaper-layer{background-image:url("assets/wallpaper/iuno.jpg?v=2");background-size:cover;background-position:center;background-repeat:no-repeat}
+    .base-layer{animation:none}
     #wallpaper-canvas{z-index:1;display:block;pointer-events:none}
     #particle-canvas{z-index:2;display:block;pointer-events:none}
     .cover-copy{position:absolute;z-index:3;left:clamp(28px,6.5vw,110px);top:clamp(54px,10vh,118px);max-width:min(690px,76vw);color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.62),0 1px 3px rgba(0,0,0,.82)}
@@ -28,18 +28,6 @@
 </head>
 <body>
   <section class="wallpaper-cover" id="top" aria-label="Homepage cover">
-    <svg class="wallpaper-filters" aria-hidden="true" width="0" height="0">
-      <filter id="water-ripple-filter" x="-3%" y="-3%" width="106%" height="106%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.006 0.025" numOctaves="2" seed="7" result="noise">
-          <animate attributeName="baseFrequency"
-                   values="0.006 0.025;0.009 0.032;0.006 0.025"
-                   dur="8s"
-                   repeatCount="indefinite"/>
-        </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="9.5"
-                           xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
-    </svg>
     <div class="wallpaper-fallback" aria-hidden="true">
       <div class="wallpaper-layer base-layer"></div>
       <div class="wallpaper-layer motion-hair"></div>
@@ -216,6 +204,6 @@
     </div>
   </footer>
 
-  <script src="script.js?v=20261109-7"></script>
+  <script src="script.js?v=20261109-8"></script>
 </body>
 </html>
